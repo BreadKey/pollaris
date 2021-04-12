@@ -3,8 +3,8 @@ from poll.model import *
 
 import json
 
-from __handler__ import response
-from __handler__ import request
+from handler import response
+from handler import request
 
 
 def createPoll(event, context):
