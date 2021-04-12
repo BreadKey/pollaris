@@ -1,0 +1,2 @@
+class AlreadyAnsweredError(Exception):
+    pass
