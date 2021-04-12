@@ -150,8 +150,8 @@ plugins:
   - serverless-offline
 custom:
   customDomain:
-    domainName: api.pollaris.net
-    basePath: ''
+    domainName: ${self:custom.secret.domain}
+    basePath: ${self:custom.secret.basePath}
     stage: ${self:provider.stage}
     createRoute53Record: true
   pythonRequirements:
