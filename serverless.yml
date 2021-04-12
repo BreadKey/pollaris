@@ -26,7 +26,13 @@ provider:
   stage: ${opt:stage, 'dev'}
   lambdaHashingVersion: 20201221
   region: ap-northeast-2
-
+  environment:
+    host: ${self:custom.secret.db.host}
+    port: ${self:custom.secret.db.port}
+    user: ${self:custom.secret.db.user}
+    password: ${self:custom.secret.db.password}
+    database: ${self:custom.secret.db.database}
+  
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
@@ -75,6 +81,17 @@ functions:
       - http:
           path: answer
           method: post
+  page:
+    handler: handler.page
+    events:
+      - http:
+          path: poll
+          method: get
+          request:
+            parameters:
+              querystrings:
+                from: true
+                count: true
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
