@@ -1,10 +1,10 @@
-from pymysql import NULL
-from auth.model import *
-from auth import CONSTRAINTS, repository
-from auth import error
-from pymysql.err import IntegrityError
-from crypt import crypt
 import os
+from crypt import crypt
+
+from pymysql.err import IntegrityError
+
+from auth import CONSTRAINTS, error, repository
+from auth.model import *
 
 __salt = os.environ.get("salt", "some salt")
 
