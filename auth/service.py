@@ -13,7 +13,7 @@ def signUp(user: User, password: str):
     assert len(user.id) in range(CONSTRAINTS.minIdLength,
                                  CONSTRAINTS.maxIdLength), f"Id length not in range {CONSTRAINTS.minIdLength} ~ {CONSTRAINTS.maxIdLength}"
     assert len(user.nickname) in range(CONSTRAINTS.minNicknameLength,
-                                       CONSTRAINTS.maxNicknameLength), f"Nickname length not in range {CONSTRAINTS.minNicknameLength} ~ {CONSTRAINTS.minNicknameLength}"
+                                       CONSTRAINTS.maxNicknameLength), f"Nickname length not in range {CONSTRAINTS.minNicknameLength} ~ {CONSTRAINTS.maxNicknameLength}"
 
     user.hasIdentity = False
 
