@@ -32,6 +32,8 @@ provider:
     user: ${self:custom.secret.db.user}
     password: ${self:custom.secret.db.password}
     database: ${self:custom.secret.db.database}
+    encrypt: ${self:custom.secret.db.encrypt}
+    salt: ${self:custom.secret.salt}
   
 # you can overwrite defaults here
 #  stage: dev
@@ -67,22 +69,38 @@ provider:
 package:
   patterns:
     - '!secret/**'
+    - '!test/**'
 
 functions:
+  signUp:
+    handler: handler.auth.signUp
+    events:
+      - http:
+          path: signUp
+          method: post
+
   createPoll:
-    handler: handler.createPoll
+    handler: handler.poll.create
     events:
       - http:
           path: poll
           method: post
+
+  getPollConstraints:
+    handler: handler.poll.getConstraints
+    events:
+      - http:
+          path: poll/constraints
+          method: get
+
   answer:
-    handler: handler.answer
+    handler: handler.poll.answer
     events:
       - http:
           path: answer
           method: post
   page:
-    handler: handler.page
+    handler: handler.poll.page
     events:
       - http:
           path: poll
