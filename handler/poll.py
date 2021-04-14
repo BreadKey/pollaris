@@ -3,8 +3,7 @@ from poll.model import *
 
 import json
 
-from handler import response
-from handler import request
+from handler import request, response
 
 
 def create(event, context):
@@ -23,8 +22,10 @@ def create(event, context):
     except AssertionError as e:
         return response.badRequest(e.__str__())
 
+
 def getConstraints(event, context):
     return response.ok(json.dumps(CONSTRAINTS.__dict__))
+
 
 def answer(event, context):
     data = request.getData(event)

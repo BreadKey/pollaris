@@ -1,6 +1,7 @@
 from auth.model import *
 from handler import request, response
-from auth import service, error
+from auth import service, error, CONSTRAINTS
+import json
 
 
 def signUp(event, cotext):
@@ -20,3 +21,7 @@ def signUp(event, cotext):
         return response.badRequest("Conflict Nickname")
     except AssertionError as e:
         return response.badRequest(e.__str__())
+
+
+def getConstraints(event, context):
+    return response.ok(json.dumps(CONSTRAINTS.__dict__))

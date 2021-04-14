@@ -79,6 +79,13 @@ functions:
           path: signUp
           method: post
 
+  getAuthConstraints:
+    handler: handler.auth.getConstraints
+    events:
+      - http:
+          path: auth/constraints
+          method: get
+
   createPoll:
     handler: handler.poll.create
     events:
