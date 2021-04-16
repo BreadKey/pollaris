@@ -117,9 +117,9 @@ def createVerificationLog(userId: str):
     with POLLARIS_DB.cursor() as cursor:
         cursor.execute(
             f'select phoneNumber from VerificationCodes where userId = "{userId}"')
-        phoneNumber = cursor.fetchone()[0]
+        encryptedPhoneNumber = cursor.fetchone()[0]
         now = datetime.now()
         cursor.execute(
-            f'insert into VerificationLogs(userId, phoneNumber, dateTime) values("{userId}", "{phoneNumber}", "{now.isoformat()}")')
+            f'insert into VerificationLogs(userId, phoneNumber, dateTime) values("{userId}", "{encryptedPhoneNumber}", "{now.isoformat()}")')
 
     POLLARIS_DB.commit()
