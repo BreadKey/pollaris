@@ -16,9 +16,9 @@ def signUp(event, cotext):
         return response.created()
 
     except error.ConflictIdError:
-        return response.badRequest("Conflict Id")
+        return response.badRequest("Conflict id")
     except error.ConflictNicknameError:
-        return response.badRequest("Conflict Nickname")
+        return response.badRequest("Conflict nickname")
     except AssertionError as e:
         return response.badRequest(e.__str__())
 
