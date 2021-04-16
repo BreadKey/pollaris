@@ -1,9 +1,9 @@
 from auth.model import *
-from handler import request, response
+from handler import needData, request, response
 from auth import service, error, CONSTRAINTS
 import json
 
-
+@needData
 def signUp(event, cotext):
     data = request.getData(event)
     data["roles"] = list(map(lambda name: Role(name), data["roles"]))

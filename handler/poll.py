@@ -3,9 +3,10 @@ from poll.model import *
 
 import json
 
-from handler import request, response
+from handler import request, response, needData
 
 
+@needData
 def create(event, context):
     data = request.getData(event)
 
@@ -27,17 +28,18 @@ def getConstraints(event, context):
     return response.ok(json.dumps(CONSTRAINTS.__dict__))
 
 
+@needData
 def answer(event, context):
     data = request.getData(event)
+    option = data["option"]
+    option["count"] = None
+    userId = data["userId"]
 
     try:
-        option = data["option"]
-        option["count"] = None
-        service.answer(Answer(data["userId"], Option(**option)))
+        service.answer(Answer(userId, Option(**option)))
         return response.ok()
     except error.AlreadyAnsweredError:
         return response.conflict("You have already answered")
-
 
 def page(event, context):
     data = request.getData(event)

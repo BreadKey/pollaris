@@ -1,4 +1,4 @@
-create database if not exists pollaris;
+create database pollaris;
 
 use pollaris;
 
@@ -15,6 +15,31 @@ create table Roles(
     userId varchar(20),
     name varchar(20),
     primary key(userId, name),
+    foreign key(userId) references Users(id) on delete cascade
+);
+
+create table VerificationCodes(
+    id bigint auto_increment primary key,
+    userId varchar(20) not null,
+    phoneNumber varchar(100) unique key not null,
+    code varchar(100) not null,
+    requestDateTime datetime not null,
+    foreign key(userId) references Users(id) on delete cascade
+);
+
+create table VerificationLogs(
+    id bigint auto_increment primary key,
+    userId varchar(20) not null,
+    phoneNumber varchar(100) unique key not null,
+    dateTime datetime not null,
+    foreign key(userId) references Users(id) on delete cascade
+);
+
+create table Identities(
+    userId varchar(20),
+    method varchar(10),
+    value varchar(100),
+    primary key(userId, method),
     foreign key(userId) references Users(id) on delete cascade
 );
 

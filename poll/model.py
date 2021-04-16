@@ -1,20 +1,20 @@
+from dataclasses import dataclass
 from typing import List
 
 
+@dataclass
 class Option:
-    def __init__(self, pollId: int, index: int, body: str, count: int):
-        self.pollId = pollId
-        self.index = index
-        self.body = body
-        self.count = count
+    pollId: int
+    index: int
+    body: str
+    count: int
 
-
+@dataclass
 class Poll:
-    def __init__(self, userId: str, question: str, options: List[Option], id: int = 0):
-        self.userId = userId
-        self.question = question
-        self.id = id
-        self.options = options
+    userId: str
+    question: str
+    options: List[Option]
+    id: int = 0
 
     def toJson(self):
         return {
@@ -25,7 +25,7 @@ class Poll:
         }
 
 
+@dataclass
 class Answer:
-    def __init__(self, userId: str, option: Option):
-        self.userId = userId
-        self.option = option
+    userId: str
+    option: Option

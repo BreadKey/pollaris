@@ -1,9 +1,13 @@
+from dataclasses import dataclass
+
+@dataclass
 class __Constraints:
-    def __init__(self, minIdLength: int, maxIdLength: int, minNicknameLength: int, maxNicknameLength: int):
-        self.minIdLength = minIdLength
-        self.maxIdLength = maxIdLength
-        self.minNicknameLength = minNicknameLength
-        self.maxNicknameLength = maxNicknameLength
+        minIdLength: int
+        maxIdLength: int
+        minNicknameLength: int
+        maxNicknameLength: int
+        idRegex: str
+        verificationCodeDigit: int
+        responseWatingMinutes: int
 
-
-CONSTRAINTS = __Constraints(5, 20, 3, 10)
+CONSTRAINTS = __Constraints(5, 20, 3, 10, r"[a-zA-Z][a-zA-Z0-9]+", 6, 5)

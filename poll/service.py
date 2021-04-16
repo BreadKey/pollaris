@@ -2,9 +2,11 @@ from poll.model import *
 from poll import repository, error, CONSTRAINTS
 from pymysql.err import IntegrityError
 
+
 def createPoll(poll: Poll) -> Poll:
-    assert len(
-        poll.question) in range(1, CONSTRAINTS.maxQuestionLength), f"Question length not in range 1 ~ {CONSTRAINTS.maxQuestionLength}"
+    assert len(poll.question) in range(
+        1, CONSTRAINTS.maxQuestionLength), f"Question length not in range 1 ~ {CONSTRAINTS.maxQuestionLength}"
+    
     assert len(poll.options) in range(CONSTRAINTS.minOptionCount,
                                       CONSTRAINTS.maxOptionCount), f"Option count not in range {CONSTRAINTS.minOptionCount} ~ {CONSTRAINTS.maxOptionCount}"
 
