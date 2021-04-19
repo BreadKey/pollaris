@@ -1,5 +1,7 @@
-import pymysql
+
 import os
+
+import pymysql
 
 POLLARIS_DB = pymysql.connect(
     host=os.environ.get("host", "localhost"),

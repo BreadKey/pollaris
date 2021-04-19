@@ -1,7 +1,7 @@
 from datetime import timedelta
 import os
 import random
-from crypt import crypt
+from hashlib import sha256
 
 from pymysql.err import IntegrityError
 
@@ -10,7 +10,8 @@ from auth.model import *
 
 import re
 
-__salt = os.environ.get("salt", "some salt")
+__SALT = os.environ.get("salt", "some salt")
+__STAGE = os.environ.get("stage", "dev")
 
 
 def signUp(user: User, password: str):
@@ -28,7 +29,7 @@ def signUp(user: User, password: str):
         user.roles = [Role.User]
 
     try:
-        return repository.createUser(user, crypt(password, __salt))
+        return repository.createUser(user, crypt(password, __SALT))
     except IntegrityError as e:
         message: str = e.args[1]
 
@@ -41,29 +42,36 @@ def signUp(user: User, password: str):
 
 
 def signIn(id: str, password: str) -> bool:
-    return repository.findUserByIdAndPassword(id, crypt(password, __salt)) is not None
+    return repository.findUserByIdAndPassword(id, crypt(password, __SALT)) is not None
 
 
 def requestVerifyIdentity(userId: str, phoneNumber: str):
     user = repository.findUserById(userId)
-
-    cryptedPhoneNumber = crypt(phoneNumber, __salt)
-
     assert user is not None, "Invalid user"
-    assert not user.hasIdentity, "Already verified user"
-    assert not repository.hasVerificationLog(
-        cryptedPhoneNumber), "Already verified phone number"
+
+    cryptedPhoneNumber = crypt(phoneNumber, __SALT)
+
+    assert not __didUserVerifyWithPhoneNumber(
+        user, cryptedPhoneNumber), "Already verified user"
     assert not repository.hasVerificationCode(
         cryptedPhoneNumber), "Already requested"
 
     code = __generateVerificationCode()
-    cryptedCode = crypt(code, __salt)
+    cryptedCode = crypt(code, __SALT)
 
+    repository.setHasIdentity(userId, False)
     repository.createVerificationCode(userId, cryptedPhoneNumber, cryptedCode)
     repository.removeVerifiactionCode(userId,
                                       timedelta(minutes=CONSTRAINTS.responseWatingMinutes))
 
     __sendVerificationCode(phoneNumber, code)
+
+
+def __didUserVerifyWithPhoneNumber(user: User, cryptedPhoneNumber: str) -> bool:
+    lastLog = repository.findLastVerificationLogByPhoneNumber(
+        cryptedPhoneNumber)
+
+    return user.hasIdentity and lastLog and lastLog.userId == user.id
 
 
 def __generateVerificationCode() -> str:
@@ -72,14 +80,32 @@ def __generateVerificationCode() -> str:
             lambda _: str(random.randrange(0, 10)),
             range(0, CONSTRAINTS.verificationCodeDigit)))
 
+
 def __sendVerificationCode(phoneNumber: str, code: str):
-    print(code)
+    if (__STAGE == "prod"):
+        pass
+    else:
+        print(code)
+
 
 def verifyIdentity(userId: str, code: str):
-    cryptedCode = crypt(code, __salt)
+    cryptedCode = crypt(code, __SALT)
 
-    assert repository.isCorrectVerificationCode(userId, cryptedCode), "Incorrect code"
+    verificationCode = repository.findVerificationCodeByUserIdAndCode(
+        userId, cryptedCode)
+
+    assert verificationCode, "Incorrect code"
+
+    lastLogWithPhoneNumber = repository.findLastVerificationLogByPhoneNumber(
+        verificationCode.phoneNumber, encrypt=False)
+
+    if (lastLogWithPhoneNumber and lastLogWithPhoneNumber.userId != userId):
+        repository.setHasIdentity(lastLogWithPhoneNumber.userId, False)
 
     repository.createVerificationLog(userId)
     repository.removeVerifiactionCode(userId)
     repository.setHasIdentity(userId, True)
+
+
+def crypt(word: str, salt: str) -> str:
+    return sha256(str(word + salt).encode('utf-8')).hexdigest()

@@ -30,7 +30,7 @@ create table VerificationCodes(
 create table VerificationLogs(
     id bigint auto_increment primary key,
     userId varchar(20) not null,
-    phoneNumber varchar(100) unique key not null,
+    phoneNumber varchar(100) not null,
     dateTime datetime not null,
     foreign key(userId) references Users(id) on delete cascade
 );
@@ -64,6 +64,7 @@ create table Answers(
     userId varchar(20),
     pollId bigint,
     `index` int,
+    dateTime datetime not null,
     primary key(userId, pollId),
     foreign key (pollId) references Polls(id) on delete cascade
 );

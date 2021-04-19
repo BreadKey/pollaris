@@ -1,20 +1,26 @@
 from poll.model import *
 
-from db import POLLARIS_DB
+from db import POLLARIS_DB, querybuilder
+from db.querybuilder import Expression
 
 import pymysql
 
 
 def createPoll(poll: Poll) -> Poll:
     with POLLARIS_DB.cursor() as cursor:
+        pollData = poll.__dict__.copy()
+        pollData.pop("options")
+
         cursor.execute(
-            f'insert into Polls (userId, question) values("{poll.userId}", "{poll.question}")'
+            querybuilder.insert(Poll, pollData)
         )
         id = cursor.lastrowid
 
         for option in sorted(poll.options, key=lambda option: option.index):
+            option.count = 0
+            option.pollId = id
             cursor.execute(
-                f'insert into Options (pollId, `index`, body, count) values({id}, {option.index}, "{option.body}", 0)'
+                querybuilder.insert(Option, option.__dict__)
             )
     POLLARIS_DB.commit()
 
@@ -23,35 +29,45 @@ def createPoll(poll: Poll) -> Poll:
 
 def createAnswer(answer: Answer):
     with POLLARIS_DB.cursor() as cursor:
+        data = {"userId": answer.userId,
+                "pollId": answer.option.pollId,
+                "index": answer.option.index,
+                "dateTime": datetime.now()}
         cursor.execute(
-            f'insert into Answers (userId, pollId, `index`) values("{answer.userId}", {answer.option.pollId}, {answer.option.index})'
+            querybuilder.insert(Answer, data)
         )
+
         cursor.execute(
-            f'update Options set count = count + 1 where pollId = {answer.option.pollId} and `index` = {answer.option.index}'
+            querybuilder.update(
+                Option,
+                {"count": Expression("count", 1, '+')},
+                where=[Expression("pollId", answer.option.pollId),
+                       Expression("index", answer.option.index)])
         )
     POLLARIS_DB.commit()
 
 
 def orderByDescFrom(id: int, count: int) -> List[Poll]:
     with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
-        query = 'select * from Polls'
+        cursor.execute(
+            querybuilder.select(
+                Poll,
+                where=[Expression("id", id, "<")] if id else None,
+                orderBy=("id", querybuilder.Order.Desc),
+                limit=count)
+        )
 
-        if (id is not None):
-            query += f' where id < {id}'
-
-        query += f' order by id desc limit {count}'
-
-        cursor.execute(query)
         rows = cursor.fetchall()
 
         polls = []
 
         for row in rows:
             id = row["id"]
-            cursor.execute(f"select * from Options where pollId = {id}")
-            options = list(map(lambda optionRow: Option(
+            cursor.execute(querybuilder.select(
+                Option, where=[Expression("pollId", id)]))
+            row["options"] = list(map(lambda optionRow: Option(
                 **optionRow), cursor.fetchall()))
 
-            polls.append(Poll(row["userId"], row["question"], options, id))
+            polls.append(Poll(**row))
 
     return polls

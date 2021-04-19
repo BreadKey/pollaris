@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
 
@@ -9,12 +10,13 @@ class Option:
     body: str
     count: int
 
+
 @dataclass
 class Poll:
     userId: str
     question: str
     options: List[Option]
-    id: int = 0
+    id: int = None
 
     def toJson(self):
         return {
@@ -29,3 +31,4 @@ class Poll:
 class Answer:
     userId: str
     option: Option
+    dateTime: datetime = None
