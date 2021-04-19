@@ -6,7 +6,7 @@ create table Users(
     id varchar(20),
     password varchar(100) not null,
     nickname varchar(10),
-    hasIdentity tinyint(1),
+    isVerified tinyint(1),
     primary key(id),
     unique key(nickname)
 );

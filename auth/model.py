@@ -12,7 +12,7 @@ class Role(Enum):
 class User:
     id: str
     nickname: str
-    hasIdentity: bool
+    isVerified: bool
     roles: List[Role]
 
     def fromJson(json):
@@ -44,3 +44,14 @@ class VerificationLog:
         json["dateTime"] = datetime.fromisoformat(json["dateTime"])
 
         return VerificationLog(**json)
+
+class IdentifyMethod(Enum):
+    Password = "Password"
+    Pattern = "Pattern"
+    Biometric = "Biometric"
+
+@dataclass
+class Identity:
+    userId: str
+    method: IdentifyMethod
+    value: str

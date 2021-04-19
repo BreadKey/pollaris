@@ -2,13 +2,13 @@ import os
 from typing import List
 from db import POLLARIS_DB, querybuilder
 from db.querybuilder import Expression
-from auth.model import Role, User, VerificationCode, VerificationLog
+from auth.model import Identity, Role, User, VerificationCode, VerificationLog
 import pymysql
 from datetime import datetime, timedelta
 
 __ENCRYPT_METHOD = os.environ.get("encrypt", "MD5")
 
-__USER_ARGS = ["id", "nickname", "hasIdentity"]
+__USER_ARGS = ["id", "nickname", "isVerified"]
 
 
 def createUser(user: User, password: str):
@@ -86,7 +86,7 @@ def hasVerificationCode(phoneNumber: str) -> bool:
 
 def createVerificationCode(userId: str, phoneNumber: str, code: str):
     with POLLARIS_DB.cursor() as cursor:
-        now = datetime.now()
+        now = datetime.utcnow()
 
         verificationCode = VerificationCode(
             None, userId, phoneNumber, code, now)
@@ -105,7 +105,7 @@ def removeVerifiactionCode(userId: str, after: timedelta = None):
 
         query = ""
         if (after is not None):
-            removeDateTime = datetime.now() + after
+            removeDateTime = datetime.utcnow() + after
             query += f'create event if not exists {__buildRemoveEventName(userId)} on schedule at "{removeDateTime.isoformat()}" do '
 
         query += querybuilder.delete(VerificationCode,
@@ -131,11 +131,11 @@ def isCorrectVerificationCode(userId: str, code: str) -> bool:
         return cursor.fetchone() is not None
 
 
-def setHasIdentity(userId: str, hasIdentity: bool):
+def setVerified(userId: str, isVerified: bool):
     with POLLARIS_DB.cursor() as cursor:
         cursor.execute(
             querybuilder.update(
-                User, {"hasIdentity": hasIdentity}, where=[Expression("id", userId)]))
+                User, {"isVerified": isVerified}, where=[Expression("id", userId)]))
 
     POLLARIS_DB.commit()
 
@@ -147,7 +147,7 @@ def createVerificationLog(userId: str):
                                 where=[Expression("userId", userId)])
         )
         encryptedPhoneNumber = cursor.fetchone()[0]
-        now = datetime.now()
+        now = datetime.utcnow()
 
         log = VerificationLog(None, userId, encryptedPhoneNumber, now)
 
@@ -185,3 +185,15 @@ def findVerificationCodeByUserIdAndCode(userId: str, code: str) -> VerificationC
         row = cursor.fetchone()
         if (row):
             return VerificationCode(**row)
+
+
+def hasIdentity(identity: Identity) -> bool:
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.select(Identity,
+                                           where=[
+                                               Expression(
+                                                   "userId", identity.userId),
+                                               Expression(
+                                                   "method", identity.method),
+                                               Expression("value", identity.value)],
+                                           encrypt={"value": __ENCRYPT_METHOD}))

@@ -34,6 +34,8 @@ provider:
     database: ${self:custom.secret.db.database}
     encrypt: ${self:custom.secret.db.encrypt}
     salt: ${self:custom.secret.salt}
+    jwtKey: ${self:custom.secret.jwt.key}
+    jwtAlgorithm: ${self:custom.secret.jwt.algorithm}
   
 # you can overwrite defaults here
 #  stage: dev
@@ -68,6 +70,7 @@ provider:
 #    - include-me-dir/**
 package:
   patterns:
+    - '!client.py'
     - '!secret/**'
     - '!test/**'
     - '!*.sql'
@@ -80,6 +83,13 @@ functions:
           path: signUp
           method: post
 
+  signIn:
+    handler: handler.auth.signIn
+    events:
+      - http:
+          path: signIn
+          method: post
+
   getAuthConstraints:
     handler: handler.auth.getConstraints
     events:
@@ -87,12 +97,19 @@ functions:
           path: auth/constraints
           method: get
 
+  authorizeUser:
+    handler: handler.auth.authorizeUser
+
+  authorizeVerifiedUser:
+    handler: handler.auth.authorizeVerifiedUser
+
   createPoll:
     handler: handler.poll.create
     events:
       - http:
           path: poll
           method: post
+          authorizer: authorizeUser
 
   getPollConstraints:
     handler: handler.poll.getConstraints
@@ -107,12 +124,14 @@ functions:
       - http:
           path: answer
           method: post
+          authorizer: authorizeVerifiedUser
   page:
     handler: handler.poll.page
     events:
       - http:
           path: poll
           method: get
+          authorizer: authorizeUser
           request:
             parameters:
               querystrings:

@@ -39,7 +39,7 @@ def answer(event, context):
         service.answer(Answer(userId, Option(**option)))
         return response.ok()
     except error.AlreadyAnsweredError:
-        return response.conflict("You have already answered")
+        return response.conflict("User already answered")
 
 def page(event, context):
     data = request.getData(event)

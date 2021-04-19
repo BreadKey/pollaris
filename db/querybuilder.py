@@ -98,7 +98,12 @@ def __buildWhere(where: List[Expression], encrypt: dict) -> str:
 
 
 def __buildTable(model: Type) -> str:
-    return model.__name__ + 's'
+    table = model.__name__
+
+    if (table[-2:] in ["ty"]):
+        return table[:-1] + "ies"
+
+    return table + 's'
 
 
 def __express(expression: Expression, encryptMethod: str = None) -> str:

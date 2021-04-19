@@ -10,3 +10,5 @@ POLLARIS_DB = pymysql.connect(
     passwd=os.environ.get("password", ""),
     db=os.environ.get("database", "pollaris")
 )
+
+POLLARIS_DB.autocommit(True)

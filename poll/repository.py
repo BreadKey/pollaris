@@ -32,7 +32,7 @@ def createAnswer(answer: Answer):
         data = {"userId": answer.userId,
                 "pollId": answer.option.pollId,
                 "index": answer.option.index,
-                "dateTime": datetime.now()}
+                "dateTime": datetime.utcnow()}
         cursor.execute(
             querybuilder.insert(Answer, data)
         )
