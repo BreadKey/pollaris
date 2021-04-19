@@ -143,9 +143,8 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
         if (needVerification or role):
             user = repository.findUserById(userId)
 
-            if needVerification:
-                if not user.isVerified:
-                    raise error.NotVerifiedError(userId)
+            if needVerification and not user.isVerified:
+                raise error.NotVerifiedError(userId)
 
             if role and not role in user.roles:
                 raise error.NotGrantedError
