@@ -147,7 +147,7 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
                 raise error.NotVerifiedError(userId)
 
             if role and not role in user.roles:
-                raise error.NotGrantedError
+                raise error.NotGrantedError(userId)
 
         return userId
 
