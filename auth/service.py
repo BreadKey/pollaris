@@ -68,15 +68,15 @@ def __publishAuth(userId: str) -> Auth:
 
 
 def requestVerifyIdentity(userId: str, phoneNumber: str):
-    filteredPhoneNumber = phoneNumber.replace("-", "").replace(" ", "")
+    phoneNumber = re.sub(r"-| ", '', phoneNumber)
 
     assert re.fullmatch(CONSTRAINTS.phoneNumberRegex,
-                        filteredPhoneNumber), f"Phone number not match pattern {CONSTRAINTS.phoneNumberRegex}"
+                        phoneNumber), f"Phone number not match pattern {CONSTRAINTS.phoneNumberRegex}"
 
     user = repository.findUserById(userId)
     assert user is not None, "Invalid user"
 
-    cryptedPhoneNumber = crypt(filteredPhoneNumber, __SALT)
+    cryptedPhoneNumber = crypt(phoneNumber, __SALT)
 
     assert not __didUserVerifyWithPhoneNumber(
         user, cryptedPhoneNumber), "Already verified user"
@@ -91,7 +91,7 @@ def requestVerifyIdentity(userId: str, phoneNumber: str):
     repository.removeVerifiactionCode(userId,
                                       timedelta(minutes=CONSTRAINTS.responseWatingMinutes))
 
-    __sendVerificationCode(filteredPhoneNumber, code)
+    __sendVerificationCode(phoneNumber, code)
 
 
 def __didUserVerifyWithPhoneNumber(user: User, cryptedPhoneNumber: str) -> bool:
