@@ -14,8 +14,8 @@ def create(event, context):
     question = data["question"]
     options = data["options"]
 
-    poll = Poll(userId, question, list(map(lambda option: Option(
-        None, option["index"], option["body"], None), options)))
+    poll = Poll(userId, question, [Option(
+        None, option["index"], option["body"], None) for option in options])
 
     try:
         createdPoll = service.createPoll(poll)
@@ -28,7 +28,7 @@ def getConstraints(event, context):
     return response.ok(json.dumps(CONSTRAINTS.__dict__))
 
 
-@needData
+@ needData
 def answer(event, context):
     data = request.getData(event)
     option = data["option"]
@@ -41,6 +41,7 @@ def answer(event, context):
     except error.AlreadyAnsweredError:
         return response.conflict("User already answered")
 
+
 def page(event, context):
     data = request.getData(event)
 
@@ -49,10 +50,6 @@ def page(event, context):
 
     return response.ok(
         json.dumps(
-            list(
-                map(
-                    lambda poll: poll.toJson(), service.page(fromId, count)
-                )
-            )
+            [poll.toJson() for poll in service.page(fromId, count)]
         )
     )

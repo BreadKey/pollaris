@@ -6,7 +6,7 @@ import json
 @needData
 def signUp(event, cotext):
     data = request.getData(event)
-    data["roles"] = list(map(lambda name: Role(name), data["roles"]))
+    data["roles"] = [Role(name) for name in data["roles"]]
     data["isVerified"] = False
 
     password = data.pop("password")

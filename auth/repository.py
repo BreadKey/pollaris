@@ -57,7 +57,7 @@ def __userFromRow(userRow: dict, cursor: pymysql.cursors.Cursor) -> User:
 
         roleRows = cursor.fetchall()
 
-        userRow["roles"] = list(map(lambda row: Role(row["name"]), roleRows))
+        userRow["roles"] = [Role(row["name"]) for row in roleRows]
 
         return User(**userRow)
 

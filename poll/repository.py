@@ -24,7 +24,7 @@ def createPoll(poll: Poll) -> Poll:
             )
     POLLARIS_DB.commit()
 
-    return Poll(poll.userId, poll.question, list(map(lambda option: Option(id, option.index, option.body, 0), poll.options)), id)
+    return Poll(poll.userId, poll.question, [Option(id, option.index, option.body, 0) for option in poll.options], id)
 
 
 def createAnswer(answer: Answer):
@@ -65,8 +65,8 @@ def orderByDescFrom(id: int, count: int) -> List[Poll]:
             id = row["id"]
             cursor.execute(querybuilder.select(
                 Option, where=[Expression("pollId", id)]))
-            row["options"] = list(map(lambda optionRow: Option(
-                **optionRow), cursor.fetchall()))
+            row["options"] = [Option(**optionRow)
+                              for optionRow in cursor.fetchall()]
 
             polls.append(Poll(**row))
 

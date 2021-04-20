@@ -103,9 +103,8 @@ def __didUserVerifyWithPhoneNumber(user: User, cryptedPhoneNumber: str) -> bool:
 
 def __generateVerificationCode() -> str:
     return "".join(
-        map(
-            lambda _: str(random.randrange(0, 10)),
-            range(0, CONSTRAINTS.verificationCodeDigit)))
+        [str(random.randrange(0, 10)) for _ in
+            range(0, CONSTRAINTS.verificationCodeDigit)])
 
 
 def __sendVerificationCode(phoneNumber: str, code: str):

@@ -23,7 +23,7 @@ class Poll:
             "id": self.id,
             "userId": self.userId,
             "question": self.question,
-            "options": list(map(lambda option: option.__dict__, self.options))
+            "options": [option.__dict__ for option in self.options]
         }
 
 
