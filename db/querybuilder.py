@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List, Type, Tuple
+from typing import Any, List, Type, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -11,9 +11,10 @@ class Order(Enum):
 
 @dataclass
 class Expression:
-    field: str
+    field: Union[str, 'Expression']
     value: Any
     operator: str = "="
+    needBracket: bool = False
 
 
 def select(model: Type, fields: List[str] = None,
@@ -33,7 +34,8 @@ def select(model: Type, fields: List[str] = None,
     query += __buildWhere(where, encrypt)
 
     if (orderBy and len(orderBy) > 0):
-        query += " order by " + __buildField(orderBy[0]) + " " + orderBy[1].name
+        query += " order by " + \
+            __buildField(orderBy[0]) + " " + orderBy[1].name
 
     if (limit):
         query += f" limit {limit}"
@@ -65,7 +67,7 @@ def update(model: Type, data: dict, where: List[Expression] = None, encrypt: dic
     for field, value in data.items():
         sentence = __buildField(field) + " = "
         if isinstance(value, Expression):
-            sentence += __express(value, __getEncryptMethod(encrypt, field))
+            sentence += __express(value, encrypt)
         else:
             sentence += __buildValue(value, __getEncryptMethod(encrypt, field))
         sentences.append(sentence)
@@ -91,7 +93,7 @@ def __buildWhere(where: List[Expression], encrypt: dict) -> str:
         sentences = []
         for expression in where:
             sentences.append(
-                __express(expression, __getEncryptMethod(encrypt, expression.field)))
+                __express(expression, encrypt))
 
         query += " and ".join(sentences)
 
@@ -107,8 +109,15 @@ def __buildTable(model: Type) -> str:
     return table + 's'
 
 
-def __express(expression: Expression, encryptMethod: str = None) -> str:
-    return __buildField(expression.field) + f' {expression.operator} ' + __buildValue(expression.value, encryptMethod)
+def __express(expression: Expression, encrypt: dict = None) -> str:
+    field = __express(expression.field, encrypt) if isinstance(
+        expression.field, Expression) else __buildField(expression.field)
+    value = __express(expression.value, encrypt) if isinstance(expression.value, Expression) else __buildValue(
+        expression.value, __getEncryptMethod(encrypt, expression.field))
+
+    sentence = field + f" {expression.operator} " + value
+
+    return "(" + sentence + ")" if expression.needBracket else sentence
 
 
 def __buildField(attribute: str) -> str:
