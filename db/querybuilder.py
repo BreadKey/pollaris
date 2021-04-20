@@ -23,7 +23,7 @@ def select(model: Type, args: List[str] = None,
            limit: int = None) -> str:
     query = f"select "
 
-    if (args is None or len(args) == 0):
+    if (not args or len(args) == 0):
         query += "*"
     else:
         query += ", ".join(args)
@@ -50,7 +50,7 @@ def insert(model: Type, data: dict, encrypt: dict = None) -> str:
     for field, value in data.items():
         fields.append(__buildField(field))
         values.append(__buildValue(
-            value, encrypt.get(field) if encrypt else None))
+            value, __getEncryptMethod(encrypt, field)))
 
     query += "(" + ", ".join(fields) + ") values(" + ",".join(values) + ")"
 
@@ -75,12 +75,14 @@ def update(model: Type, data: dict, where: List[Expression] = None, encrypt: dic
 
     return query
 
+
 def delete(model: Type, where: List[Expression] = None, encrypt: dict = None):
     query = "delete from " + __buildTable(model)
 
     query += __buildWhere(where, encrypt)
 
     return query
+
 
 def __buildWhere(where: List[Expression], encrypt: dict) -> str:
     query = ""
