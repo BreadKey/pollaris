@@ -33,7 +33,7 @@ def select(model: Type, fields: List[str] = None,
     query += __buildWhere(where, encrypt)
 
     if (orderBy and len(orderBy) > 0):
-        query += " order by " + orderBy[0] + " " + orderBy[1].name
+        query += " order by " + __buildField(orderBy[0]) + " " + orderBy[1].name
 
     if (limit):
         query += f" limit {limit}"
