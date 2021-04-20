@@ -120,8 +120,8 @@ def __express(expression: Expression, encrypt: dict = None) -> str:
     return "(" + sentence + ")" if expression.needBracket else sentence
 
 
-def __buildField(attribute: str) -> str:
-    return f"`{attribute}`" if attribute == "index" else attribute
+def __buildField(field: str) -> str:
+    return f"`{field}`" if field == "index" else field
 
 
 def __buildValue(value: Any, encryptMethod: str = None) -> str:
