@@ -16,17 +16,17 @@ class Expression:
     operator: str = "="
 
 
-def select(model: Type, args: List[str] = None,
+def select(model: Type, fields: List[str] = None,
            where: List[Expression] = None,
            encrypt: dict = None,
            orderBy: Tuple[str, Order] = None,
            limit: int = None) -> str:
     query = f"select "
 
-    if (not args or len(args) == 0):
+    if (not fields or len(fields) == 0):
         query += "*"
     else:
-        query += ", ".join(args)
+        query += ", ".join(fields)
 
     query += f" from {__buildTable(model)}"
 

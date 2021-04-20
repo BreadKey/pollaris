@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 __ENCRYPT_METHOD = os.environ.get("encrypt", "MD5")
 
-__USER_ARGS = ["id", "nickname", "isVerified"]
+__USER_FIELDS = ["id", "nickname", "isVerified"]
 
 
 def createUser(user: User, password: str):
@@ -31,7 +31,7 @@ def createUser(user: User, password: str):
 def findUserById(id: str) -> User:
     with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
         cursor.execute(querybuilder.select(
-            User, args=__USER_ARGS, where=[Expression("id", id)]))
+            User, fields=__USER_FIELDS, where=[Expression("id", id)]))
 
         return __userFromRow(cursor.fetchone(), cursor)
 
@@ -39,7 +39,7 @@ def findUserById(id: str) -> User:
 def findUserByIdAndPassword(id: str, password: str) -> User:
     with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
         cursor.execute(
-            querybuilder.select(User, args=__USER_ARGS,
+            querybuilder.select(User, fields=__USER_FIELDS,
                                 where=[
                                     Expression("id", id),
                                     Expression("password", password)],
@@ -51,7 +51,7 @@ def findUserByIdAndPassword(id: str, password: str) -> User:
 def __userFromRow(userRow: dict, cursor: pymysql.cursors.Cursor) -> User:
     if (userRow):
         cursor.execute(
-            querybuilder.select(Role, args=["name"],
+            querybuilder.select(Role, fields=["name"],
                                 where=[Expression("userId", userRow["id"])])
         )
 
