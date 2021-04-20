@@ -24,7 +24,7 @@ def select(model: Type, fields: List[str] = None,
            limit: int = None) -> str:
     query = f"select "
 
-    if (not fields or len(fields) == 0):
+    if (not fields):
         query += "*"
     else:
         query += ", ".join(fields)
@@ -33,7 +33,7 @@ def select(model: Type, fields: List[str] = None,
 
     query += __buildWhere(where, encrypt)
 
-    if (orderBy and len(orderBy) > 0):
+    if (orderBy):
         query += " order by " + \
             __buildField(orderBy[0]) + " " + orderBy[1].name
 
@@ -88,7 +88,7 @@ def delete(model: Type, where: List[Expression] = None, encrypt: dict = None):
 
 def __buildWhere(where: List[Expression], encrypt: dict) -> str:
     query = ""
-    if (where and len(where) > 0):
+    if where:
         query += " where "
         sentences = []
         for expression in where:

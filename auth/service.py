@@ -23,14 +23,14 @@ def signUp(user: User, password: str):
     assert len(user.id) in range(CONSTRAINTS.minIdLength,
                                  CONSTRAINTS.maxIdLength), f"Id length not in range {CONSTRAINTS.minIdLength} ~ {CONSTRAINTS.maxIdLength}"
     assert re.fullmatch(
-        CONSTRAINTS.idRegex, user.id) is not None, f"Id not match pattern {CONSTRAINTS.idRegex}"
+        CONSTRAINTS.idRegex, user.id), f"Id not match pattern {CONSTRAINTS.idRegex}"
 
     assert len(user.nickname) in range(CONSTRAINTS.minNicknameLength,
                                        CONSTRAINTS.maxNicknameLength), f"Nickname length not in range {CONSTRAINTS.minNicknameLength} ~ {CONSTRAINTS.maxNicknameLength}"
 
     user.isVerified = False
 
-    if user.roles is None or len(user.roles) == 0:
+    if not user.roles:
         user.roles = [Role.User]
 
     try:
@@ -68,10 +68,15 @@ def __publishAuth(userId: str) -> Auth:
 
 
 def requestVerifyIdentity(userId: str, phoneNumber: str):
+    filteredPhoneNumber = phoneNumber.replace("-", "").replace(" ", "")
+
+    assert re.fullmatch(CONSTRAINTS.phoneNumberRegex,
+                        filteredPhoneNumber), f"Phone number not match pattern {CONSTRAINTS.phoneNumberRegex}"
+
     user = repository.findUserById(userId)
     assert user is not None, "Invalid user"
 
-    cryptedPhoneNumber = crypt(phoneNumber, __SALT)
+    cryptedPhoneNumber = crypt(filteredPhoneNumber, __SALT)
 
     assert not __didUserVerifyWithPhoneNumber(
         user, cryptedPhoneNumber), "Already verified user"
@@ -86,7 +91,7 @@ def requestVerifyIdentity(userId: str, phoneNumber: str):
     repository.removeVerifiactionCode(userId,
                                       timedelta(minutes=CONSTRAINTS.responseWatingMinutes))
 
-    __sendVerificationCode(phoneNumber, code)
+    __sendVerificationCode(filteredPhoneNumber, code)
 
 
 def __didUserVerifyWithPhoneNumber(user: User, cryptedPhoneNumber: str) -> bool:
