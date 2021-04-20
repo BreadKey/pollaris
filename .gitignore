@@ -26,3 +26,5 @@ mysql.sh
 
 # Node Modules
 node_modules/
+
+.DS_Store
