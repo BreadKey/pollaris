@@ -24,10 +24,7 @@ def select(model: Type, fields: List[str] = None,
            limit: int = None) -> str:
     query = f"select "
 
-    if (not fields):
-        query += "*"
-    else:
-        query += ", ".join(fields)
+    query += "*" if not fields else ", ".join(fields)
 
     query += f" from {__buildTable(model)}"
 
