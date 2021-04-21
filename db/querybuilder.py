@@ -51,7 +51,7 @@ def insert(model: Type, data: dict, encrypt: dict = None) -> str:
         values.append(__buildValue(
             value, __getEncryptMethod(encrypt, field)))
 
-    query += "(" + ", ".join(fields) + ") values(" + ",".join(values) + ")"
+    query += "(" + ", ".join(fields) + ") values(" + ", ".join(values) + ")"
 
     return query
 

@@ -104,9 +104,9 @@ def removeVerifiactionCode(userId: str, after: timedelta = None):
             f'drop event if exists {__buildRemoveEventName(userId)}')
 
         query = ""
-        if (after is not None):
-            removeDateTime = datetime.utcnow() + after
-            query += f'create event if not exists {__buildRemoveEventName(userId)} on schedule at "{removeDateTime.isoformat()}" do '
+        if (after):
+            query += f'create event if not exists {__buildRemoveEventName(userId)} ' + \
+                f'on schedule at date_add(now(), interval {after.seconds} second) do '
 
         query += querybuilder.delete(VerificationCode,
                                      where=[Expression("userId", userId)])
