@@ -115,7 +115,7 @@ functions:
 
   verifyIdentity:
     handler: handler.auth.verifyIdentity
-    efvents:
+    events:
       - http:
           path: auth/verification
           method: post
