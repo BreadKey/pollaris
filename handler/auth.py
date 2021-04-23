@@ -143,9 +143,9 @@ def __getAuth(event: dict) -> Auth:
     return Auth(accessToken, event.get("refreshToken"))
 
 
-def __generatePolicy(principal_id, effect, resource):
+def __generatePolicy(principalId, effect, resource):
     return {
-        'principalId': principal_id,
+        'principalId': principalId,
         'policyDocument': {
             'Version': '2012-10-17',
             'Statement': [
