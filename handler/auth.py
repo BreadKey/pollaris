@@ -3,6 +3,7 @@ from handler import needData, request, response
 from auth import Auth, service, error, CONSTRAINTS
 import json
 
+
 @needData
 def signUp(event, cotext):
     data = request.getData(event)
@@ -19,8 +20,9 @@ def signUp(event, cotext):
         return response.badRequest("Conflict id")
     except error.ConflictNicknameError:
         return response.badRequest("Conflict nickname")
-    except AssertionError as e:
-        return response.badRequest(e.__str__())
+    except AssertionError as err:
+        return response.badRequest(err.__str__())
+
 
 @needData
 def signIn(event, context):
@@ -32,10 +34,12 @@ def signIn(event, context):
 
     return response.unauthorized()
 
+
 def getConstraints(event, context):
     return response.ok(json.dumps(CONSTRAINTS.__dict__))
 
-def authorizeUser(event, context):    
+
+def authorizeUser(event, context):
     try:
         auth = __getAuth(event)
         userId = service.authorize(auth, Role.User)
@@ -43,6 +47,37 @@ def authorizeUser(event, context):
 
     except:
         raise Exception("Unauthorized")
+
+
+@needData
+def requestVerificationCode(event, context):
+    data = request.getData(event)
+
+    userId = data["userId"]
+    phoneNumber = data["phoneNumber"]
+
+    try:
+        service.requestVerificationCode(userId, phoneNumber)
+
+        return response.ok()
+    except AssertionError as err:
+        return response.badRequest(err.__str__())
+
+
+@needData
+def verifyIdentity(event, context):
+    data = request.getData(event)
+
+    userId = data["userId"]
+    code = data["code"]
+
+    try:
+        service.verifyIdentity(userId, code)
+
+        return response.ok()
+    except AssertionError as err:
+        return response.badRequest(err.__str__())
+
 
 def authorizeVerifiedUser(event, context):
     try:
@@ -54,11 +89,45 @@ def authorizeVerifiedUser(event, context):
     except error.NotVerifiedError as err:
         userId = err.args[0]
         policy = __generatePolicy(userId, 'Deny', event['methodArn'])
-        
+
         return policy
 
     except:
         raise Exception("Unauthorized")
+
+
+@needData
+def registerIdentity(event, context):
+    data = request.getData(event)
+
+    userId = data["userId"]
+    method = IdentifyMethod(data["method"])
+    key = data["key"]
+
+    service.registerIdentity(Identity(userId, method, key))
+
+    return response.created()
+
+
+@needData
+def getNewIdentityChallenge(event, context):
+    data = request.getData(event)
+
+    userId = data["userId"]
+
+    return response.ok({"challenge": service.getNewIdentityChallenge(userId)})
+
+
+def authorizeWithIdentity(event, context):
+    try:
+        auth = __getAuth(event)
+        userId = service.authorizeWithIdentity(auth.accessToken)
+
+        return __generatePolicy(userId, "Allow", event["methodArn"])
+
+    except:
+        raise Exception("Unauthorized")
+
 
 def __getAuth(event: dict) -> Auth:
     token: str = event.get("authorizationToken")
@@ -70,6 +139,7 @@ def __getAuth(event: dict) -> Auth:
     assert method.lower() == "bearer"
 
     return Auth(accessToken, event.get("refreshToken"))
+
 
 def __generatePolicy(principal_id, effect, resource):
     return {

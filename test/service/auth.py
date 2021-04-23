@@ -1,8 +1,9 @@
+from auth.error import NotGrantedError
 import base64
 import json
 from datetime import datetime, timedelta
 from test import db
-from test.utils import withTestUser
+from test.utils import Capturing, withTestUser
 from unittest import TestCase, main
 
 import jwt
@@ -15,10 +16,36 @@ class AuthServiceTest(TestCase):
     def tearDown(self) -> None:
         db.tearDown()
 
+    def testVerify(self):
+        from auth import service
+        from auth.model import User, Role
+        from auth.error import NotVerifiedError
+
+        user = User("testUser", "testUser", False, [Role.User])
+
+        service.signUp(user, "secret")
+
+        with self.assertRaises(NotVerifiedError):
+            auth = service.signIn("testUser", "secret")
+            service.authorize(auth, Role.User, needVerification=True)
+
+        with Capturing() as output:
+            service.requestVerificationCode("testUser", "+82-1234-5678")
+
+        code = output[0]
+        service.verifyIdentity("testUser", code)
+
+        auth = service.signIn("testUser", "secret")
+        self.assertEqual(service.authorize(
+            auth, Role.User, needVerification=True), "testUser")
+
+        with self.assertRaises(NotGrantedError):
+            service.authorize(auth, Role.Admin, needVerification=True)
+
     @withTestUser
     def testAuthorizeWithIdentity(self):
         from auth import service
-        from auth.error import InvalidAuthError, ExpiredAuthError
+        from auth.error import ExpiredAuthError, InvalidAuthError
         from auth.model import IdentifyMethod, Identity
 
         identityKey = "fingerprint"
@@ -26,7 +53,7 @@ class AuthServiceTest(TestCase):
         service.registerIdentity(
             Identity("breadkey", IdentifyMethod.Fingerprint, identityKey))
 
-        challenge = service.requestIdentityChallenge("breadkey")
+        challenge = service.getNewIdentityChallenge("breadkey")
 
         with self.assertRaises(InvalidAuthError):
             service.authorizeWithIdentity("hello")
@@ -64,7 +91,7 @@ class AuthServiceTest(TestCase):
         service.registerIdentity(
             Identity("breadkey", IdentifyMethod.Fingerprint, changedKey))
 
-        challenge = service.requestIdentityChallenge("breadkey")
+        challenge = service.getNewIdentityChallenge("breadkey")
 
         payload["challenge"] = challenge
         content["token"] = jwt.encode(payload, identityKey)
@@ -82,7 +109,6 @@ class AuthServiceTest(TestCase):
 
         with self.assertRaises(ExpiredAuthError):
             service.authorizeWithIdentity(rawToken)
-
 
     def __makeRawToken(self, content: dict) -> str:
         return base64.b64encode(json.dumps(content).encode('utf-8'))

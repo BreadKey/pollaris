@@ -68,7 +68,7 @@ def __publishAuth(userId: str) -> Auth:
     return Auth(accessToken, refreshToken)
 
 
-def requestVerifyIdentity(userId: str, phoneNumber: str):
+def requestVerificationCode(userId: str, phoneNumber: str):
     phoneNumber = re.sub(r"-| ", '', phoneNumber)
 
     assert re.fullmatch(CONSTRAINTS.phoneNumberRegex,
@@ -142,7 +142,7 @@ def encrypt(word: str, salt: str) -> str:
     return word.en
 
 
-def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
+def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> str:
     try:
         payload = jwt.decode(auth.accessToken, __JWT_KEY,
                              options={"verify_exp": True},
@@ -170,7 +170,7 @@ def registerIdentity(identity: Identity):
     repository.saveIdentity(identity)
 
 
-def requestIdentityChallenge(userId: str) -> str:
+def getNewIdentityChallenge(userId: str) -> str:
     challenge = "".join(random.choices(
         string.ascii_lowercase + string.digits, k=8))
     repository.saveIdentityChallenge(

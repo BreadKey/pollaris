@@ -100,8 +100,52 @@ functions:
   authorizeUser:
     handler: handler.auth.authorizeUser
 
+  requestVerificationCode:
+    handler: handler.auth.requestVerificationCode
+    events:
+      - http:
+          path: auth/verification
+          method: get
+          authorizer: authorizeUser
+          request:
+            parameters:
+              querystrings:
+                userId: true
+                phoneNumber: true
+
+  verifyIdentity:
+    handler: handler.auth.verifyIdentity
+    efvents:
+      - http:
+          path: auth/verification
+          method: post
+          authorizer: authorizeUser
+
   authorizeVerifiedUser:
     handler: handler.auth.authorizeVerifiedUser
+    
+  registerIdentity:
+    handler: handler.auth.registerIdentity
+    events:
+      - http:
+          path: auth/identity
+          method: post
+          authorizer: authorizeVerifiedUser
+
+  getNewIdentityChallenge:
+    handler: handler.auth.getNewIdentityChallenge
+    events:
+      - http:
+          path: auth/challenge
+          method: get
+          authorizer: authorizeVerifiedUser
+          request:
+            parameters:
+              querystrings:
+                userId: true
+
+  authorizeWithIdentity:
+    handler: handler.auth.authorizeWithIdentity
 
   createPoll:
     handler: handler.poll.create
@@ -124,7 +168,7 @@ functions:
       - http:
           path: answer
           method: post
-          authorizer: authorizeVerifiedUser
+          authorizer: authorizeWithIdentity
   page:
     handler: handler.poll.page
     events:
