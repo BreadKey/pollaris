@@ -1,9 +1,9 @@
-import pymysql
-from poll.model import *
-from poll import repository, error, CONSTRAINTS
-from pymysql.err import IntegrityError
 from pymysql.constants import ER
-import re
+from pymysql.err import IntegrityError
+
+from poll import CONSTRAINTS, error, repository
+from poll.model import *
+
 
 def createPoll(poll: Poll) -> Poll:
     assert len(poll.question) in range(
