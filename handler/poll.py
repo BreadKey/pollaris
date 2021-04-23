@@ -40,7 +40,8 @@ def answer(event, context):
         return response.ok()
     except error.AlreadyAnsweredError:
         return response.conflict("User already answered")
-
+    except error.PollNotExistError:
+        return response.badRequest("Poll not exist")
 
 def page(event, context):
     data = request.getData(event)
