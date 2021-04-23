@@ -29,6 +29,14 @@ class RepositoryTest(TestCase):
         self.assertListEqual(
             foundUser.roles, [model.Role.Admin, model.Role.User])
 
+    def __createTestUser(self):
+        from auth import repository, model
+
+        user = model.User("breadkey", "testBK", True, [
+                          model.Role.Admin, model.Role.User])
+
+        repository.createUser(user, "secret")
+
     @withTestUser
     def testSaveIdentity(self):
         from auth import repository
@@ -47,13 +55,6 @@ class RepositoryTest(TestCase):
         self.assertEqual(repository.findIdentityKeyByUserIdAndMethod(
             "breadkey", IdentifyMethod.Fingerprint), secondKey)
 
-    def __createTestUser(self):
-        from auth import repository, model
 
-        user = model.User("breadkey", "testBK", True, [
-                          model.Role.Admin, model.Role.User])
-
-        repository.createUser(user, "secret")
-
-
-main()
+if (__name__ == '__main__'):
+    main()
