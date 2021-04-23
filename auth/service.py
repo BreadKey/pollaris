@@ -138,10 +138,6 @@ def crypt(word: str, salt: str) -> str:
     return sha256(str(word + salt).encode('utf-8')).hexdigest()
 
 
-def encrypt(word: str, salt: str) -> str:
-    return word.en
-
-
 def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> str:
     try:
         payload = jwt.decode(auth.accessToken, __JWT_KEY,
