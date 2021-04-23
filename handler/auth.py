@@ -1,5 +1,5 @@
 from auth.model import *
-from handler import needData, request, response
+from handler import needData, private, request, response
 from auth import Auth, service, error, CONSTRAINTS
 import json
 
@@ -49,7 +49,7 @@ def authorizeUser(event, context):
         raise Exception("Unauthorized")
 
 
-@needData
+@private
 def requestVerificationCode(event, context):
     data = request.getData(event)
 
@@ -64,7 +64,7 @@ def requestVerificationCode(event, context):
         return response.badRequest(err.__str__())
 
 
-@needData
+@private
 def verifyIdentity(event, context):
     data = request.getData(event)
 
@@ -96,7 +96,7 @@ def authorizeVerifiedUser(event, context):
         raise Exception("Unauthorized")
 
 
-@needData
+@private
 def registerIdentity(event, context):
     data = request.getData(event)
 
@@ -109,7 +109,7 @@ def registerIdentity(event, context):
     return response.created()
 
 
-@needData
+@private
 def getNewIdentityChallenge(event, context):
     data = request.getData(event)
 

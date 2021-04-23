@@ -3,10 +3,10 @@ from poll.model import *
 
 import json
 
-from handler import request, response, needData
+from handler import private, request, response, needData
 
 
-@needData
+@private
 def create(event, context):
     data = request.getData(event)
 
@@ -28,7 +28,7 @@ def getConstraints(event, context):
     return response.ok(json.dumps(CONSTRAINTS.__dict__))
 
 
-@ needData
+@private
 def answer(event, context):
     data = request.getData(event)
     option = data["option"]
