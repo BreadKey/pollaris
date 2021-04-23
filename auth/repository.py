@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Type
 from db import POLLARIS_DB, querybuilder
 from db.querybuilder import Expression
 from auth.model import IdentifyMethod, Identity, IdentityChallenge, Role, User, VerificationCode, VerificationLog
@@ -101,11 +101,11 @@ def createVerificationCode(userId: str, phoneNumber: str, code: str):
 def removeVerifiactionCode(userId: str, after: timedelta = None):
     with POLLARIS_DB.cursor() as cursor:
         cursor.execute(
-            f'drop event if exists {__buildRemoveEventName(userId)}')
+            f'drop event if exists {__buildRemoveEventName(VerificationCode, userId)}')
 
         query = ""
         if (after):
-            query += f'create event if not exists {__buildRemoveEventName(userId)} ' + \
+            query += f'create event if not exists {__buildRemoveEventName(VerificationCode, userId)} ' + \
                 f'on schedule at date_add(now(), interval {after.seconds} second) do '
 
         query += querybuilder.delete(VerificationCode,
@@ -114,9 +114,6 @@ def removeVerifiactionCode(userId: str, after: timedelta = None):
         cursor.execute(query)
 
     POLLARIS_DB.commit()
-
-
-def __buildRemoveEventName(userId: str) -> str: return f'removeCodeOf{userId}'
 
 
 def isCorrectVerificationCode(userId: str, code: str) -> bool:
@@ -192,6 +189,7 @@ def saveIdentity(identity: Identity):
         cursor.execute(querybuilder.insert(
             Identity, identity.__dict__, onDuplicate=Expression("key", identity.key)))
 
+    POLLARIS_DB.commit()
 
 def findIdentityKeyByUserIdAndMethod(userId: str, method: IdentifyMethod) -> str:
     with POLLARIS_DB.cursor() as cursor:
@@ -211,7 +209,8 @@ def saveIdentityChallenge(challenge: IdentityChallenge):
                                 challenge.__dict__,
                                 encrypt={"value": __ENCRYPT_METHOD},
                                 onDuplicate=Expression("value", challenge.value)))
-
+                                
+    POLLARIS_DB.commit()
 
 def hasIdentityChallenge(userId: str, value: str) -> bool:
     with POLLARIS_DB.cursor() as cursor:
@@ -223,7 +222,21 @@ def hasIdentityChallenge(userId: str, value: str) -> bool:
         return cursor.fetchone() is not None
 
 
-def removeIdentityChallenge(userId: str):
+def removeIdentityChallenge(userId: str, after: timedelta = None):
     with POLLARIS_DB.cursor() as cursor:
-        cursor.execute(querybuilder.delete(IdentityChallenge,
-                                           where=[Expression("userId", userId)]))
+        cursor.execute(
+            f'drop event if exists {__buildRemoveEventName(IdentityChallenge, userId)}')
+        query = ""
+        if (after):
+            query += f'create event if not exists {__buildRemoveEventName(IdentityChallenge, userId)} ' + \
+                f'on schedule at date_add(now(), interval {after.seconds} second) do '
+
+        query += querybuilder.delete(IdentityChallenge,
+                                     where=[Expression("userId", userId)])
+
+        cursor.execute(query)
+
+    POLLARIS_DB.commit()
+
+def __buildRemoveEventName(
+    model: Type, userId: str) -> str: return f'remove{model.__name__}Of{userId}'

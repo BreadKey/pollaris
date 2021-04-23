@@ -175,6 +175,8 @@ def getNewIdentityChallenge(userId: str) -> str:
         string.ascii_lowercase + string.digits, k=8))
     repository.saveIdentityChallenge(
         IdentityChallenge(userId, crypt(challenge, __SALT)))
+    repository.removeIdentityChallenge(userId,
+                                       after=timedelta(seconds=CONSTRAINTS.challengeHoldingSeconds))
     return challenge
 
 

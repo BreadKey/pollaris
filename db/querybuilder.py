@@ -23,7 +23,7 @@ def select(model: Type, fields: List[str] = None,
            encrypt: dict = None,
            orderBy: Tuple[str, Order] = None,
            limit: int = None) -> str:
-    query = f"select "
+    query = "select "
 
     query += "*" if not fields else ", ".join(
         [__buildField(field) for field in fields])
