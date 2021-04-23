@@ -70,7 +70,6 @@ provider:
 #    - include-me-dir/**
 package:
   patterns:
-    - '!*test.py'
     - '!client.py'
     - '!secret/**'
     - '!test/**'

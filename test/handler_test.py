@@ -27,4 +27,5 @@ class HandlerTest(TestCase):
         self.assertEqual(auth.signUp(event, {})["statusCode"], 201)
 
 
-main()
+if (__name__ == '__main__'):
+    main()
