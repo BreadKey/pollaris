@@ -1,19 +1,18 @@
-from datetime import timedelta
+import base64
 import json
 import os
 import random
+import re
+import string
+from datetime import timedelta
 from hashlib import sha256
-from jwt.exceptions import InvalidAlgorithmError
 
+import jwt
+from jwt.exceptions import InvalidAlgorithmError
 from pymysql.err import IntegrityError
 
 from auth import CONSTRAINTS, Auth, error, repository
 from auth.model import *
-
-import re
-
-import base64
-import jwt
 
 __SALT = os.environ.get("salt", "some salt")
 __STAGE = os.environ.get("stage", "dev")
@@ -76,7 +75,7 @@ def requestVerifyIdentity(userId: str, phoneNumber: str):
                         phoneNumber), f"Phone number not match pattern {CONSTRAINTS.phoneNumberRegex}"
 
     user = repository.findUserById(userId)
-    assert user is not None, "Invalid user"
+    assert user, "Invalid user"
 
     cryptedPhoneNumber = crypt(phoneNumber, __SALT)
 
@@ -138,8 +137,10 @@ def verifyIdentity(userId: str, code: str):
 def crypt(word: str, salt: str) -> str:
     return sha256(str(word + salt).encode('utf-8')).hexdigest()
 
+
 def encrypt(word: str, salt: str) -> str:
     return word.en
+
 
 def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
     try:
@@ -164,8 +165,18 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
     except jwt.ExpiredSignatureError:
         raise error.ExpiredAuthError
 
+
 def registerIdentity(identity: Identity):
     repository.saveIdentity(identity)
+
+
+def requestIdentityChallenge(userId: str) -> str:
+    challenge = "".join(random.choices(
+        string.ascii_lowercase + string.digits, k=8))
+    repository.saveIdentityChallenge(
+        IdentityChallenge(userId, crypt(challenge, __SALT)))
+    return challenge
+
 
 def authorizeWithIdentity(rawToken: str) -> str:
     try:
@@ -179,7 +190,7 @@ def authorizeWithIdentity(rawToken: str) -> str:
         payload = jwt.decode(token, key,
                              options={"verify_exp": True}, algorithms=["HS256", "HS512"])
 
-        if (repository.hasIdentityChallenge(userId, payload["challenge"])):
+        if (repository.hasIdentityChallenge(userId, crypt(payload["challenge"], __SALT))):
             repository.removeIdentityChallenge(userId)
             return userId
 

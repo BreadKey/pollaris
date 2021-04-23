@@ -15,6 +15,3 @@ class NotVerifiedError(Exception):
 
 class NotGrantedError(Exception):
     pass
-
-class NotMatchIdentityError(Exception):
-    pass

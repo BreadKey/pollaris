@@ -1,4 +1,5 @@
 from test import db
+from test.utils import withTestUser
 
 from unittest import TestCase, main
 
@@ -10,32 +11,15 @@ class RepositoryTest(TestCase):
     def tearDown(self):
         db.tearDown()
 
-    def withTestUser(test):
-        def wrapper(self: 'RepositoryTest'):
-            self.__createTestUser()
-            test(self)
-
-        return wrapper
-
+    @withTestUser
     def testSaveUser(self):
         from auth import repository, model
-
-        self.__createTestUser()
-
         foundUser = repository.findUserById("breadkey")
 
         self.assertEqual(foundUser.nickname, "testBK")
         self.assertEqual(foundUser.isVerified, True)
         self.assertListEqual(
             foundUser.roles, [model.Role.Admin, model.Role.User])
-
-    def __createTestUser(self):
-        from auth import repository, model
-
-        user = model.User("breadkey", "testBK", True, [
-                          model.Role.Admin, model.Role.User])
-
-        repository.createUser(user, "secret")
 
     @withTestUser
     def testSaveIdentity(self):

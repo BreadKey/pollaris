@@ -204,6 +204,15 @@ def findIdentityKeyByUserIdAndMethod(userId: str, method: IdentifyMethod) -> str
         return cursor.fetchone()[0]
 
 
+def saveIdentityChallenge(challenge: IdentityChallenge):
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(
+            querybuilder.insert(IdentityChallenge,
+                                challenge.__dict__,
+                                encrypt={"value": __ENCRYPT_METHOD},
+                                onDuplicate=Expression("value", challenge.value)))
+
+
 def hasIdentityChallenge(userId: str, value: str) -> bool:
     with POLLARIS_DB.cursor() as cursor:
         cursor.execute(querybuilder.select(IdentityChallenge, where=[

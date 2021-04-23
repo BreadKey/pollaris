@@ -46,7 +46,7 @@ create table Identities(
 create table IdentityChallenges (
     userId varchar(20),
     value varchar(100),
-    primary key(userId, value),
+    primary key(userId),
     foreign key(userId) references Users(id) on delete cascade
 );
 
