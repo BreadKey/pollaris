@@ -1,7 +1,6 @@
 from auth.model import *
 from handler import needData, private, request, response
 from auth import Auth, service, error, CONSTRAINTS
-import json
 
 
 @needData
@@ -50,6 +49,7 @@ def authorizeUser(event, context):
 
 
 @private
+@needData
 def requestVerificationCode(event, context):
     data = request.getData(event)
 
@@ -65,6 +65,7 @@ def requestVerificationCode(event, context):
 
 
 @private
+@needData
 def verifyIdentity(event, context):
     data = request.getData(event)
 
@@ -97,6 +98,7 @@ def authorizeVerifiedUser(event, context):
 
 
 @private
+@needData
 def registerIdentity(event, context):
     data = request.getData(event)
 

@@ -43,6 +43,21 @@ class HandlerTest(TestCase):
         response = auth.requestVerificationCode(event, {})
         self.assertEqual(response["statusCode"], 401)
 
+    def testNeedDataRequest(self):
+        from handler import auth
+        event = {
+            "body": {
+                "userId": "breadkey",
+            },
+            "requestContext": {
+                "authorizer": {
+                    "principalId": "breadkey"
+                }}
+        }
+
+        response = auth.requestVerificationCode(event, {})
+        self.assertEqual(response["statusCode"], 400)
+
 
 if (__name__ == '__main__'):
     main()

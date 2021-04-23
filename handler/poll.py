@@ -7,6 +7,7 @@ from handler import private, request, response, needData
 
 
 @private
+@needData
 def create(event, context):
     data = request.getData(event)
 
@@ -29,6 +30,7 @@ def getConstraints(event, context):
 
 
 @private
+@needData
 def answer(event, context):
     data = request.getData(event)
     option = data["option"]
