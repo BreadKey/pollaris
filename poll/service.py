@@ -1,7 +1,9 @@
+import pymysql
 from poll.model import *
 from poll import repository, error, CONSTRAINTS
 from pymysql.err import IntegrityError
-
+from pymysql.constants import ER
+import re
 
 def createPoll(poll: Poll) -> Poll:
     assert len(poll.question) in range(
@@ -20,7 +22,9 @@ def createPoll(poll: Poll) -> Poll:
 def answer(answer: Answer):
     try:
         repository.createAnswer(answer)
-    except IntegrityError:
+    except IntegrityError as err:
+        if err.args[0] == ER.NO_REFERENCED_ROW_2:
+            raise error.PollNotExistError
         raise error.AlreadyAnsweredError
 
 

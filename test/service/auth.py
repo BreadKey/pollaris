@@ -111,7 +111,7 @@ class AuthServiceTest(TestCase):
             service.authorizeWithIdentity(rawToken)
 
     def __makeRawToken(self, content: dict) -> str:
-        return base64.b64encode(json.dumps(content).encode('utf-8'))
+        return base64.b64encode(json.dumps(content).encode('utf-8')).decode('ascii')
 
 
 if (__name__ == '__main__'):

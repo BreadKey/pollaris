@@ -30,13 +30,13 @@ def signIn(event, context):
 
     result = service.signIn(data["id"], data["password"])
     if (result):
-        return response.ok(json.dumps(result.__dict__))
+        return response.ok(result.__dict__)
 
     return response.unauthorized()
 
 
 def getConstraints(event, context):
-    return response.ok(json.dumps(CONSTRAINTS.__dict__))
+    return response.ok(CONSTRAINTS.__dict__)
 
 
 def authorizeUser(event, context):
