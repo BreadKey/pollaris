@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 import os
 import random
 from hashlib import sha256
@@ -11,6 +12,7 @@ from auth.model import *
 
 import re
 
+import base64
 import jwt
 
 __SALT = os.environ.get("salt", "some salt")
@@ -78,7 +80,7 @@ def requestVerifyIdentity(userId: str, phoneNumber: str):
 
     cryptedPhoneNumber = crypt(phoneNumber, __SALT)
 
-    assert not __didUserVerifyWithPhoneNumber(
+    assert not __isVerifiedUser(
         user, cryptedPhoneNumber), "Already verified user"
     assert not repository.hasVerificationCode(
         cryptedPhoneNumber), "Already requested"
@@ -94,7 +96,7 @@ def requestVerifyIdentity(userId: str, phoneNumber: str):
     __sendVerificationCode(phoneNumber, code)
 
 
-def __didUserVerifyWithPhoneNumber(user: User, cryptedPhoneNumber: str) -> bool:
+def __isVerifiedUser(user: User, cryptedPhoneNumber: str) -> bool:
     lastLog = repository.findLastVerificationLogByPhoneNumber(
         cryptedPhoneNumber)
 
@@ -136,6 +138,8 @@ def verifyIdentity(userId: str, code: str):
 def crypt(word: str, salt: str) -> str:
     return sha256(str(word + salt).encode('utf-8')).hexdigest()
 
+def encrypt(word: str, salt: str) -> str:
+    return word.en
 
 def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
     try:
@@ -159,3 +163,29 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False):
         raise error.InvalidAuthError
     except jwt.ExpiredSignatureError:
         raise error.ExpiredAuthError
+
+def registerIdentity(identity: Identity):
+    repository.saveIdentity(identity)
+
+def authorizeWithIdentity(rawToken: str) -> str:
+    try:
+        content = json.loads(base64.b64decode(rawToken).decode('utf-8'))
+        userId = content["userId"]
+        method = content["method"]
+        token = content["token"]
+
+        key = repository.findIdentityKeyByUserIdAndMethod(
+            userId, IdentifyMethod(method))
+        payload = jwt.decode(token, key,
+                             options={"verify_exp": True}, algorithms=["HS256", "HS512"])
+
+        if (repository.hasIdentityChallenge(userId, payload["challenge"])):
+            repository.removeIdentityChallenge(userId)
+            return userId
+
+        raise error.InvalidAuthError
+
+    except jwt.ExpiredSignatureError:
+        raise error.ExpiredAuthError
+    except:
+        raise error.InvalidAuthError

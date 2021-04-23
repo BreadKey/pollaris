@@ -13,7 +13,8 @@ TEST_DB_VERSION = 1
 
 def setUp():
     with TEST_DB.cursor() as cursor:
-        cursor.execute("create database if not exists " + TEST_DB_NAME)
+        cursor.execute("drop database if exists " + TEST_DB_NAME)
+        cursor.execute("create database " + TEST_DB_NAME)
         cursor.execute("use " + TEST_DB_NAME)
         with open(f"db/v{TEST_DB_VERSION}.sql", 'r') as sqlFile:
             sql = sqlFile.read()

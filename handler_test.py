@@ -1,20 +1,22 @@
 from test import db as testDb
 from unittest import TestCase, main
 
+
 class HandlerTest(TestCase):
-    def setUp( self):
+    def setUp(self):
         testDb.setUp()
-    def tearDown(self):   
+
+    def tearDown(self):
         testDb.tearDown()
 
-    def test_signUp(self):
+    def testSignUp(self):
         from handler import auth
-        
+
         event = {
-        "body": {
-            "id": "breadkey",
-            "nickname": "이영기",
-            "roles": ["Admin", "User"]
+            "body": {
+                "id": "breadkey",
+                "nickname": "이영기",
+                "roles": ["Admin", "User"]
             }
         }
 
@@ -23,5 +25,6 @@ class HandlerTest(TestCase):
         event["body"]["password"] = "secret"
 
         self.assertEqual(auth.signUp(event, {})["statusCode"], 201)
+
 
 main()

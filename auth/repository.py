@@ -2,7 +2,7 @@ import os
 from typing import List
 from db import POLLARIS_DB, querybuilder
 from db.querybuilder import Expression
-from auth.model import Identity, Role, User, VerificationCode, VerificationLog
+from auth.model import IdentifyMethod, Identity, IdentityChallenge, Role, User, VerificationCode, VerificationLog
 import pymysql
 from datetime import datetime, timedelta
 
@@ -187,13 +187,34 @@ def findVerificationCodeByUserIdAndCode(userId: str, code: str) -> VerificationC
             return VerificationCode(**row)
 
 
-def hasIdentity(identity: Identity) -> bool:
+def saveIdentity(identity: Identity):
     with POLLARIS_DB.cursor() as cursor:
-        cursor.execute(querybuilder.select(Identity,
+        cursor.execute(querybuilder.insert(
+            Identity, identity.__dict__, onDuplicate=Expression("key", identity.key)))
+
+
+def findIdentityKeyByUserIdAndMethod(userId: str, method: IdentifyMethod) -> str:
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.select(Identity, ["key"],
                                            where=[
-                                               Expression(
-                                                   "userId", identity.userId),
-                                               Expression(
-                                                   "method", identity.method),
-                                               Expression("value", identity.value)],
-                                           encrypt={"value": __ENCRYPT_METHOD}))
+            Expression("userId", userId),
+            Expression("method", method)
+        ]))
+
+        return cursor.fetchone()[0]
+
+
+def hasIdentityChallenge(userId: str, value: str) -> bool:
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.select(IdentityChallenge, where=[
+            Expression("userId", userId),
+            Expression("value", value)
+        ], encrypt={"value": __ENCRYPT_METHOD}))
+
+        return cursor.fetchone() is not None
+
+
+def removeIdentityChallenge(userId: str):
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.delete(IdentityChallenge,
+                                           where=[Expression("userId", userId)]))

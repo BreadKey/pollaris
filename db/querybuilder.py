@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, List, Type, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
+import re
 
 
 class Order(Enum):
@@ -24,7 +25,8 @@ def select(model: Type, fields: List[str] = None,
            limit: int = None) -> str:
     query = f"select "
 
-    query += "*" if not fields else ", ".join(fields)
+    query += "*" if not fields else ", ".join(
+        [__buildField(field) for field in fields])
 
     query += f" from {__buildTable(model)}"
 
@@ -40,7 +42,7 @@ def select(model: Type, fields: List[str] = None,
     return query
 
 
-def insert(model: Type, data: dict, encrypt: dict = None) -> str:
+def insert(model: Type, data: dict, encrypt: dict = None, onDuplicate: Expression = None) -> str:
     query = "insert into " + __buildTable(model)
 
     fields = []
@@ -52,6 +54,9 @@ def insert(model: Type, data: dict, encrypt: dict = None) -> str:
             value, __getEncryptMethod(encrypt, field)))
 
     query += "(" + ", ".join(fields) + ") values(" + ", ".join(values) + ")"
+
+    if (onDuplicate):
+        query += " on duplicate key update " + __express(onDuplicate, encrypt)
 
     return query
 
@@ -118,7 +123,7 @@ def __express(expression: Expression, encrypt: dict = None) -> str:
 
 
 def __buildField(field: str) -> str:
-    return f"`{field}`" if field == "index" else field
+    return f"`{field}`" if re.fullmatch(r"index|key", field) else field
 
 
 def __buildValue(value: Any, encryptMethod: str = None) -> str:

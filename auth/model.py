@@ -3,6 +3,7 @@ from enum import Enum
 from typing import List
 from datetime import datetime
 
+
 class Role(Enum):
     User = "User"
     Admin = "Admin"
@@ -25,6 +26,7 @@ class User:
 
         return json
 
+
 @dataclass
 class VerificationCode:
     id: int
@@ -32,6 +34,7 @@ class VerificationCode:
     phoneNumber: str
     code: str
     requestDateTime: datetime
+
 
 @dataclass
 class VerificationLog:
@@ -45,13 +48,20 @@ class VerificationLog:
 
         return VerificationLog(**json)
 
+
 class IdentifyMethod(Enum):
     Password = "Password"
     Pattern = "Pattern"
-    Biometric = "Biometric"
+    Fingerprint = "Fingerprint"
+
 
 @dataclass
 class Identity:
     userId: str
     method: IdentifyMethod
+    key: str
+
+@dataclass
+class IdentityChallenge:
+    userId: str
     value: str
