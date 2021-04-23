@@ -1,4 +1,4 @@
-create database pollaris;
+create database pollaris character set utf8;
 
 use pollaris;
 

@@ -13,7 +13,7 @@ def withTestUser(test):
 def __createTsstUser():
     from auth import model, repository
 
-    user = model.User("breadkey", "testBK", True, [
+    user = model.User("breadkey", "이영기입니다", True, [
         model.Role.Admin, model.Role.User])
 
     repository.createUser(user, "secret")

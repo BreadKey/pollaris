@@ -1,7 +1,8 @@
 import json
 
+
 def ok(body: str = None): return __response(200, body)
-def ok(body: dict): return __response(200, json.dumps(body))
+def ok(body: dict = None): return __response(200, json.dumps(body) if body else None)
 def created(body: str = None): return __response(201, body)
 
 

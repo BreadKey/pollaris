@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import List
 import requests
 import json
 import jwt
@@ -50,6 +51,8 @@ def page():
 
     assert response.status_code == 200, response.json()
 
+    print(response.json())
+
 
 def getNewIdentityChallenge(userId: str) -> str:
     response = requests.get(
@@ -60,6 +63,17 @@ def getNewIdentityChallenge(userId: str) -> str:
     challenge = response.json()["challenge"]
 
     return challenge
+
+
+def createPoll(userId: str, question: str, options: List[str]):
+    response = requests.post(
+        HOST + "/poll", headers=__buildAuthHeader(), data=json.dumps({
+            "userId": userId,
+            "question": question,
+            "options": [{"index": index, "body": option} for index, option in enumerate(options)]
+        }))
+
+    assert response.status_code == 201, response.json()
 
 
 def answer(userId: str, pollId: int, index: int):

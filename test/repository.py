@@ -16,7 +16,7 @@ class RepositoryTest(TestCase):
         from auth import repository, model
         foundUser = repository.findUserById("breadkey")
 
-        self.assertEqual(foundUser.nickname, "testBK")
+        self.assertEqual(foundUser.nickname, "이영기입니다")
         self.assertEqual(foundUser.isVerified, True)
         self.assertListEqual(
             foundUser.roles, [model.Role.Admin, model.Role.User])

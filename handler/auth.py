@@ -151,7 +151,6 @@ def __generatePolicy(principal_id, effect, resource):
                     "Action": "execute-api:Invoke",
                     "Effect": effect,
                     "Resource": resource
-
                 }
             ]
         }
