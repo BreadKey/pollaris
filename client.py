@@ -5,6 +5,7 @@ import json
 import jwt
 import base64
 import os
+from getpass import getpass
 
 with open("secret/dev.json", 'r') as jsonFile:
     secret = json.load(jsonFile)
@@ -26,14 +27,21 @@ except:
         localData = {}
 
 
-def signUp(id: str, nickname: str, password: str, role: str = "User"):
+def signUp():
+    id = input("Id: ")
+    nickname = input("Nickname: ")
+    role = input("Role(User): ")
+    role = role if role else "User"
+    password = getpass("Password: ")
     response = requests.post(HOST + "/signUp", data=json.dumps(
         {"id": id, "password": password, "nickname": nickname, "roles": [role]}))
 
     assert response.status_code == 201, response.status_code
 
 
-def signIn(id: str, password: str):
+def signIn():
+    id = input("Id: ")
+    password = getpass("Password: ")
     response = requests.post(
         HOST + "/signIn", data=json.dumps({"id": id, "password": password}))
 

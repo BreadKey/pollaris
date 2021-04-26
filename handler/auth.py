@@ -22,7 +22,6 @@ def signUp(event, cotext):
     except AssertionError as err:
         return response.badRequest(err.__str__())
 
-
 @needData
 def signIn(event, context):
     data = request.getData(event)

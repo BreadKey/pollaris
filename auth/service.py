@@ -137,7 +137,6 @@ def verifyIdentity(userId: str, code: str):
 def crypt(word: str, salt: str) -> str:
     return sha256(str(word + salt).encode('utf-8')).hexdigest()
 
-
 def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> str:
     try:
         payload = jwt.decode(auth.accessToken, __JWT_KEY,
