@@ -6,7 +6,8 @@ TEST_DB = pymysql.connect(
     host="localhost",
     user="root",
     port=3306,
-    passwd=""
+    passwd="",
+    charset='utf8mb4'
 )
 TEST_DB_NAME = "pollaris_test"
 TEST_DB_VERSION = 1

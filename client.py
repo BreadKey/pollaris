@@ -8,6 +8,7 @@ from typing import List
 import requests
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+import json
 
 UTF8 = 'utf-8'
 
@@ -61,9 +62,10 @@ def page():
     response = requests.get(
         HOST + "/poll", headers=__buildAuthHeader())
 
+    response.encoding = 'utf8mb4'
     assert response.status_code == 200, response.json()
 
-    print(response.json())
+    print(json.loads((response.json())))
 
 
 def getNewIdentityChallenge(userId: str) -> str:
@@ -77,12 +79,24 @@ def getNewIdentityChallenge(userId: str) -> str:
     return challenge
 
 
-def createPoll(userId: str, question: str, options: List[str]):
+def createPoll(userId: str):
+    question = input("question: ")
+
+    options = []
+    index = 0
+    while True:
+        option = input(f"Option{index + 1}: ")
+        if (option):
+            options.append({"index": index, "body": option})
+            index += 1
+        else:
+            break
+
     response = requests.post(
         HOST + "/poll", headers=__buildAuthHeader(), data=json.dumps({
             "userId": userId,
             "question": question,
-            "options": [{"index": index, "body": option} for index, option in enumerate(options)]
+            "options": options
         }))
 
     assert response.status_code == 201, response.json()

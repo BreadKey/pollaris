@@ -9,7 +9,7 @@ POLLARIS_DB = pymysql.connect(
     port=int(os.environ.get("port", 3306)),
     passwd=os.environ.get("password", ""),
     db=os.environ.get("database", "pollaris"),
-    charset="utf8"
+    charset="utf8mb4"
 )
 
 POLLARIS_DB.autocommit(True)
