@@ -6,6 +6,8 @@ import re
 import string
 from datetime import timedelta
 from hashlib import sha256
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
 
 import jwt
 from jwt.exceptions import InvalidAlgorithmError
@@ -137,6 +139,7 @@ def verifyIdentity(userId: str, code: str):
 def crypt(word: str, salt: str) -> str:
     return sha256(str(word + salt).encode('utf-8')).hexdigest()
 
+
 def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> str:
     try:
         payload = jwt.decode(auth.accessToken, __JWT_KEY,
@@ -180,20 +183,25 @@ def authorizeWithIdentity(rawToken: str) -> str:
         content = json.loads(base64.b64decode(rawToken).decode('utf-8'))
         userId = content["userId"]
         method = content["method"]
-        token = content["token"]
+        challenge = content["challenge"]
 
         key = repository.findIdentityKeyByUserIdAndMethod(
             userId, IdentifyMethod(method))
-        payload = jwt.decode(token, key,
-                             options={"verify_exp": True}, algorithms=["HS256", "HS512"])
 
-        if (repository.hasIdentityChallenge(userId, crypt(payload["challenge"], __SALT))):
+        decryptKey = RSA.importKey(key.encode('utf-8'))
+
+        cipher = PKCS1_OAEP.new(decryptKey)
+
+        challengeBytes = base64.decodebytes(
+            challenge.encode('utf-8'))
+
+        decryptedChallenge = cipher.decrypt(challengeBytes).decode('utf-8')
+
+        if (repository.hasIdentityChallenge(userId, crypt(decryptedChallenge, __SALT))):
             repository.removeIdentityChallenge(userId)
             return userId
 
         raise error.InvalidAuthError
 
-    except jwt.ExpiredSignatureError:
-        raise error.ExpiredAuthError
     except:
         raise error.InvalidAuthError

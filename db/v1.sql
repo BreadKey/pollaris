@@ -38,7 +38,7 @@ create table VerificationLogs(
 create table Identities(
     userId varchar(20),
     method varchar(15),
-    `key` varchar(100),
+    `key` varchar(1000),
     primary key(userId, method),
     foreign key(userId) references Users(id) on delete cascade
 );

@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 from test import db
 from test.utils import Capturing, withTestUser
 from unittest import TestCase, main
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+import base64
 
 import jwt
 
@@ -45,29 +48,18 @@ class AuthServiceTest(TestCase):
     @withTestUser
     def testAuthorizeWithIdentity(self):
         from auth import service
-        from auth.error import ExpiredAuthError, InvalidAuthError
-        from auth.model import IdentifyMethod, Identity
+        from auth.error import InvalidAuthError
+        from auth.model import IdentifyMethod
 
-        identityKey = "fingerprint"
-
-        service.registerIdentity(
-            Identity("breadkey", IdentifyMethod.Fingerprint, identityKey))
-
+        encryptKey = self.__generateAndRegisterNewKeyPair()
         challenge = service.getNewIdentityChallenge("breadkey")
 
         with self.assertRaises(InvalidAuthError):
             service.authorizeWithIdentity("hello")
 
-        payload = {
-            "challenge": challenge,
-            "exp": datetime.utcnow() + timedelta(seconds=30)
-        }
-
-        token = jwt.encode(payload, identityKey)
-
         content = {
             "userId": "breadkey",
-            "token": token
+            "challenge": challenge
         }
 
         rawToken = self.__makeRawToken(content)
@@ -79,6 +71,8 @@ class AuthServiceTest(TestCase):
 
         # Test succeed
         content["method"] = IdentifyMethod.Fingerprint.name
+        content["challenge"] = self.__encryptChallenge(encryptKey, challenge)
+
         rawToken = self.__makeRawToken(content)
         self.assertEqual(service.authorizeWithIdentity(rawToken), "breadkey")
 
@@ -87,28 +81,30 @@ class AuthServiceTest(TestCase):
             service.authorizeWithIdentity(rawToken)
 
         # Test sign with old key
-        changedKey = "changed key"
-        service.registerIdentity(
-            Identity("breadkey", IdentifyMethod.Fingerprint, changedKey))
-
+        self.__generateAndRegisterNewKeyPair()
         challenge = service.getNewIdentityChallenge("breadkey")
 
-        payload["challenge"] = challenge
-        content["token"] = jwt.encode(payload, identityKey)
+        content["challenge"] = self.__encryptChallenge(encryptKey, challenge)
         rawToken = self.__makeRawToken(content)
 
         with self.assertRaises(InvalidAuthError):
             service.authorizeWithIdentity(rawToken)
 
-        # Test expired token
-        payload["exp"] = datetime.utcnow() - timedelta(seconds=1)
+    def __generateAndRegisterNewKeyPair(self):
+        from auth import service
+        from auth.model import Identity, IdentifyMethod
+        decryptKey = RSA.generate(1024)
+        encryptKey = decryptKey.publickey()
 
-        token = jwt.encode(payload, changedKey)
-        content["token"] = token
-        rawToken = self.__makeRawToken(content)
+        service.registerIdentity(
+            Identity("breadkey", IdentifyMethod.Fingerprint, decryptKey.exportKey().decode('utf-8')))
 
-        with self.assertRaises(ExpiredAuthError):
-            service.authorizeWithIdentity(rawToken)
+        return encryptKey
+
+    def __encryptChallenge(self, key, challenge):
+        cipher = PKCS1_OAEP.new(key)
+        encryptedChallenge = cipher.encrypt(challenge.encode('utf-8'))
+        return base64.encodebytes(encryptedChallenge).decode('utf-8')
 
     def __makeRawToken(self, content: dict) -> str:
         return base64.b64encode(json.dumps(content).encode('utf-8')).decode('ascii')

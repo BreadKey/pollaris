@@ -1,11 +1,15 @@
-from datetime import datetime, timedelta
-from typing import List
-import requests
-import json
-import jwt
 import base64
+import json
 import os
+from datetime import datetime, timedelta
 from getpass import getpass
+from typing import List
+
+import requests
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
+UTF8 = 'utf-8'
 
 with open("secret/dev.json", 'r') as jsonFile:
     secret = json.load(jsonFile)
@@ -113,16 +117,19 @@ def verifyIdentity(userId: str, code: str):
     assert response.status_code == 200, response.json()
 
 
-def registerIdentity(userId: str, method: str, key: str):
+def registerIdentity(userId: str):
+    decryptKey = RSA.generate(1024)
+    encryptKey = decryptKey.publickey()
+
     response = requests.post(HOST + "/auth/identity", headers=__buildAuthHeader(), data=json.dumps({
         "userId": userId,
-        "method": method,
-        "key": key
+        "method": "Fingerprint",
+        "key": decryptKey.exportKey().decode(UTF8)
     }))
 
     assert response.status_code == 201, response.json()
 
-    localData["identityKey"] = key
+    localData["identityKey"] = encryptKey.exportKey().decode(UTF8)
     with open("local/data.json", 'w') as jsonFile:
         jsonFile.write(json.dumps(localData))
 
@@ -134,17 +141,14 @@ def __buildAuthHeader():
 def __buildIdentityHeader(userId: str):
     challenge = getNewIdentityChallenge(userId)
 
-    payload = {
-        "challenge": challenge,
-        "exp": datetime.utcnow() + timedelta(seconds=30)
-    }
+    encryptKey = RSA.importKey(localData.get("identityKey").encode(UTF8))
 
-    token = jwt.encode(payload, localData.get("identityKey"))
+    cipher = PKCS1_OAEP.new(encryptKey)
 
     content = {
         "userId": userId,
         "method": "Fingerprint",
-        "token": token
+        "challenge": base64.encodebytes(cipher.encrypt(challenge.encode(UTF8))).decode(UTF8)
     }
 
-    return {"Authorization": "bearer " + base64.b64encode(json.dumps(content).encode('utf-8')).decode('ascii')}
+    return {"Authorization": "bearer " + base64.b64encode(json.dumps(content).encode(UTF8)).decode(UTF8)}
