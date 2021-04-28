@@ -36,6 +36,9 @@ provider:
     salt: ${self:custom.secret.salt}
     jwtKey: ${self:custom.secret.jwt.key}
     jwtAlgorithm: ${self:custom.secret.jwt.algorithm}
+    region: !Ref AWS::Region
+    accountId: !Ref AWS::AccountId
+    apiId: !Ref ApiGatewayRestApi
   
 # you can overwrite defaults here
 #  stage: dev

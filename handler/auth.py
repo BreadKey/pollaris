@@ -1,6 +1,9 @@
 from auth.model import *
 from handler import needData, private, request, response
 from auth import Auth, service, error, CONSTRAINTS
+import os
+
+METHOD_ARN = f"arn:aws:execute-api:{os.environ.get('region')}:{os.environ.get('accountId')}:{os.environ.get('apiId')}"
 
 
 @needData
@@ -22,6 +25,7 @@ def signUp(event, cotext):
     except AssertionError as err:
         return response.badRequest(err.__str__())
 
+
 @needData
 def signIn(event, context):
     data = request.getData(event)
@@ -41,7 +45,7 @@ def authorizeUser(event, context):
     try:
         auth = __getAuth(event)
         userId = service.authorize(auth, Role.User)
-        return __generatePolicy(userId, 'Allow', event['methodArn'])
+        return __generateWithUserPolicy(userId, 'Allow')
 
     except:
         raise Exception("Unauthorized")
@@ -84,11 +88,11 @@ def authorizeVerifiedUser(event, context):
         auth = __getAuth(event)
         userId = service.authorize(auth, Role.User, True)
 
-        return __generatePolicy(userId, 'Allow', event['methodArn'])
+        return __generateVerifiedUserPolicy(userId, 'Allow')
 
     except error.NotVerifiedError as err:
         userId = err.args[0]
-        policy = __generatePolicy(userId, 'Deny', event['methodArn'])
+        policy = __generateVerifiedUserPolicy(userId, 'Deny')
 
         return policy
 
@@ -156,3 +160,17 @@ def __generatePolicy(principalId, effect, resource):
             ]
         }
     }
+
+
+def __generateWithUserPolicy(principalId, effect):
+    return __generatePolicy(principalId, effect, [
+        METHOD_ARN + "/*/*/poll",
+        METHOD_ARN + "/*/*/auth/verification"
+    ])
+
+
+def __generateVerifiedUserPolicy(principalId, effect):
+    return __generatePolicy(principalId, effect, [
+        METHOD_ARN + "/*/*/auth/identity",
+        METHOD_ARN + "/*/*/auth/challenge"
+    ])
