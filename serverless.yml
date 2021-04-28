@@ -168,7 +168,9 @@ functions:
       - http:
           path: answer
           method: post
-          authorizer: authorizeWithIdentity
+          authorizer: 
+            name: authorizeWithIdentity
+            resultTtlInSeconds: 0
   page:
     handler: handler.poll.page
     events:
