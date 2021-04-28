@@ -10,7 +10,6 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 import jwt
-from jwt.exceptions import InvalidAlgorithmError
 from pymysql.err import IntegrityError
 
 from auth import CONSTRAINTS, Auth, error, repository
@@ -158,7 +157,7 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> 
 
         return userId
 
-    except (InvalidAlgorithmError, jwt.InvalidSignatureError):
+    except (jwt.InvalidAlgorithmError, jwt.InvalidSignatureError):
         raise error.InvalidAuthError
     except jwt.ExpiredSignatureError:
         raise error.ExpiredAuthError

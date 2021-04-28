@@ -1,9 +1,7 @@
 import base64
 import json
 import os
-from datetime import datetime, timedelta
 from getpass import getpass
-from typing import List
 
 import requests
 from Crypto.Cipher import PKCS1_OAEP
