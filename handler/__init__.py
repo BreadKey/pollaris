@@ -18,7 +18,7 @@ def private(_request):
             authorizedUserId = event["requestContext"]["authorizer"]["principalId"]
             assert userId == authorizedUserId
             return _request(event, context)
-        except:
+        except (AssertionError, KeyError):
             return response.unauthorized()
 
     return wrapper

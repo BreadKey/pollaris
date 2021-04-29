@@ -39,6 +39,12 @@ provider:
     region: !Ref AWS::Region
     accountId: !Ref AWS::AccountId
     apiId: !Ref ApiGatewayRestApi
+    snsRegion: ap-northeast-1
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sns:Publish"
+      Resource: "*"
   
 # you can overwrite defaults here
 #  stage: dev

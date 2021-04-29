@@ -88,12 +88,11 @@ def requestVerificationCode(userId: str, phoneNumber: str):
     code = __generateVerificationCode()
     cryptedCode = crypt(code, __SALT)
 
+    __sendVerificationCode(phoneNumber, code)
     repository.setVerified(userId, False)
     repository.createVerificationCode(userId, cryptedPhoneNumber, cryptedCode)
     repository.removeVerifiactionCode(userId,
                                       timedelta(minutes=CONSTRAINTS.responseWatingMinutes))
-
-    __sendVerificationCode(phoneNumber, code)
 
 
 def __isVerifiedUser(user: User, cryptedPhoneNumber: str) -> bool:
@@ -110,10 +109,35 @@ def __generateVerificationCode() -> str:
 
 
 def __sendVerificationCode(phoneNumber: str, code: str):
-    if (__STAGE == "prod"):
-        pass
+    if (__STAGE != "local"):
+        import boto3
+        import logging
+
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+
+        sns = boto3.client('sns', os.environ.get(
+            'snsRegion', 'ap-northeast-1'))
+        sns.publish(
+            PhoneNumber=phoneNumber,
+            Message=__buildVeirificationCodeMessage(code),
+            MessageAttributes={
+                'AWS.SNS.SMS.SenderID': {
+                    'DataType': 'String',
+                    'StringValue': 'Pollaris'
+                },
+                'AWS.SNS.SMS.SMSType': {
+                    'DataType': 'String',
+                    'StringValue': 'Transactional'
+                }
+            }
+        )
     else:
         print(code)
+
+
+def __buildVeirificationCodeMessage(code: str):
+    return f"[Pollaris] 인증번호 [{code}]를 입력해주세요."
 
 
 def verifyIdentity(userId: str, code: str):
