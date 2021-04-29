@@ -45,14 +45,17 @@ def answer(event, context):
     except error.PollNotExistError:
         return response.badRequest("Poll not exist")
 
+
 def page(event, context):
     data = request.getData(event)
 
     fromId = data.get("from", None)
     count = data.get("count", 10)
 
+    userId = event["requestContext"]["authorizer"]["principalId"]
+
     return response.ok(
         json.dumps(
-            [poll.toJson() for poll in service.page(fromId, count)]
+            [poll.toJson() for poll in service.page(fromId, count, userId)]
         )
     )

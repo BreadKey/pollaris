@@ -10,6 +10,7 @@ def createPoll(poll: Poll) -> Poll:
     with POLLARIS_DB.cursor() as cursor:
         pollData = poll.__dict__.copy()
         pollData.pop("options")
+        pollData.pop("hasUserAnswer")
 
         cursor.execute(
             querybuilder.insert(Poll, pollData)
@@ -71,3 +72,11 @@ def orderByDescFrom(id: int, count: int) -> List[Poll]:
             polls.append(Poll(**row))
 
     return polls
+
+
+def mergeHasUserAnswer(polls: List[Poll], userId: str):
+    with POLLARIS_DB.cursor() as cursor:
+        for poll in polls:
+            cursor.execute(querybuilder.select(
+                Answer, where=[Expression("pollId", poll.id), Expression("userId", userId)]))
+            poll.hasUserAnswer = cursor.fetchone() is not None

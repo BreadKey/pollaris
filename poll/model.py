@@ -17,13 +17,15 @@ class Poll:
     question: str
     options: List[Option]
     id: int = None
+    hasUserAnswer: bool = False
 
     def toJson(self):
         return {
             "id": self.id,
             "userId": self.userId,
             "question": self.question,
-            "options": [option.__dict__ for option in self.options]
+            "options": [option.__dict__ for option in self.options],
+            "hasUserAnswer": self.hasUserAnswer
         }
 
 

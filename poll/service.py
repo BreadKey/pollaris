@@ -28,5 +28,7 @@ def answer(answer: Answer):
         raise error.AlreadyAnsweredError
 
 
-def page(fromId: int, count: int) -> List[Poll]:
-    return repository.orderByDescFrom(fromId, count)
+def page(fromId: int, count: int, userId: str) -> List[Poll]:
+    polls = repository.orderByDescFrom(fromId, count)
+    repository.mergeHasUserAnswer(polls, userId)
+    return polls
