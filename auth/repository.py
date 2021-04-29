@@ -1,10 +1,14 @@
 import os
+from datetime import datetime, timedelta
 from typing import List, Type
+
+import pymysql
 from db import POLLARIS_DB, querybuilder
 from db.querybuilder import Expression
-from auth.model import IdentifyMethod, Identity, IdentityChallenge, Role, User, VerificationCode, VerificationLog
-import pymysql
-from datetime import datetime, timedelta
+
+from auth.model import (AuthRecord, IdentifyMethod, Identity,
+                        IdentityChallenge, Role, User, VerificationCode,
+                        VerificationLog)
 
 __ENCRYPT_METHOD = os.environ.get("encrypt", "MD5")
 
@@ -60,6 +64,29 @@ def __userFromRow(userRow: dict, cursor: pymysql.cursors.Cursor) -> User:
         userRow["roles"] = [Role(row["name"]) for row in roleRows]
 
         return User(**userRow)
+
+
+def saveAuthRecord(record: AuthRecord):
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.insert(AuthRecord, record.__dict__,
+                                           onDuplicate=Expression("dateTime", record.dateTime)))
+    POLLARIS_DB.commit()
+
+
+def findAuthRecordByUserId(userId: str) -> AuthRecord:
+    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute(querybuilder.select(
+            AuthRecord, where=[Expression("userId", userId)]))
+
+        row = cursor.fetchone()
+        return AuthRecord(**row) if row else None
+
+
+def removeAuthRecordByUserId(userId: str):
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.delete(
+            AuthRecord, where=[Expression("userId", userId)]))
+    POLLARIS_DB.commit()
 
 
 def hasVerificationLog(userId: str, phoneNumber: str) -> bool:
@@ -191,6 +218,7 @@ def saveIdentity(identity: Identity):
 
     POLLARIS_DB.commit()
 
+
 def findIdentityKeyByUserIdAndMethod(userId: str, method: IdentifyMethod) -> str:
     with POLLARIS_DB.cursor() as cursor:
         cursor.execute(querybuilder.select(Identity, ["key"],
@@ -209,8 +237,9 @@ def saveIdentityChallenge(challenge: IdentityChallenge):
                                 challenge.__dict__,
                                 encrypt={"value": __ENCRYPT_METHOD},
                                 onDuplicate=Expression("value", challenge.value)))
-                                
+
     POLLARIS_DB.commit()
+
 
 def hasIdentityChallenge(userId: str, value: str) -> bool:
     with POLLARIS_DB.cursor() as cursor:
@@ -237,6 +266,7 @@ def removeIdentityChallenge(userId: str, after: timedelta = None):
         cursor.execute(query)
 
     POLLARIS_DB.commit()
+
 
 def __buildRemoveEventName(
     model: Type, userId: str) -> str: return f'remove{model.__name__}Of{userId}'

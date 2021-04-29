@@ -48,13 +48,27 @@ def signIn():
     response = requests.post(
         HOST + "/signIn", data=json.dumps({"id": id, "password": password}))
 
-    assert response.status_code == 200, response.status_code
+    assert response.status_code == 200, response.json()
     LAST_TOKENS["accessToken"] = response.json()["accessToken"]
     localData["accessToken"] = LAST_TOKENS["accessToken"]
 
     with open("local/data.json", 'w') as jsonFile:
         jsonFile.write(json.dumps(localData))
 
+def refreshAuth():
+    response = requests.get(HOST + "/auth", headers=__buildAuthHeader())
+    
+    assert response.status_code == 200, response.json()
+    LAST_TOKENS["accessToken"] = response.json()["accessToken"]
+    localData["accessToken"] = LAST_TOKENS["accessToken"]
+
+    with open("local/data.json", "w") as jsonFile:
+        jsonFile.write(json.dumps(localData))
+
+def signOut():
+    response = requests.delete(HOST + "/auth", headers=__buildAuthHeader())
+
+    assert response.status_code == 200, response.json()
 
 def page():
     response = requests.get(

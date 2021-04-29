@@ -55,19 +55,25 @@ def signIn(id: str, password: str) -> Auth:
     return None
 
 
+def refreshAuth(userId: str) -> Auth:
+    return __publishAuth(userId)
+
+
 def __publishAuth(userId: str) -> Auth:
-    now = datetime.utcnow()
+    now = datetime.utcnow().replace(microsecond=0)
     payload = {
         "userId": userId,
         "exp": now + timedelta(days=CONSTRAINTS.accessTokenExpireDays)
     }
 
     accessToken = jwt.encode(payload, __JWT_KEY, __JWT_ALGORITHM)
-    payload["exp"] = now + timedelta(days=CONSTRAINTS.refreshTokenExpireDays)
-    refreshToken = jwt.encode(payload, __JWT_KEY, __JWT_ALGORITHM)
 
-    return Auth(accessToken, refreshToken)
+    repository.saveAuthRecord(AuthRecord(userId, now))
 
+    return Auth(accessToken)
+
+def signOut(userId: str):
+    repository.removeAuthRecordByUserId(userId)
 
 def requestVerificationCode(userId: str, phoneNumber: str):
     phoneNumber = re.sub(r"-| ", '', phoneNumber)
@@ -178,6 +184,15 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> 
 
             if role and not role in user.roles:
                 raise error.NotGrantedError(userId)
+
+        lastRecord = repository.findAuthRecordByUserId(userId)
+
+        if lastRecord:
+            exp = datetime.fromtimestamp(payload["exp"])
+            if exp - timedelta(days=CONSTRAINTS.accessTokenExpireDays) != lastRecord.dateTime:
+                raise error.ExpiredAuthError
+        else:
+            raise error.ExpiredAuthError
 
         return userId
 

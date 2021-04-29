@@ -28,6 +28,11 @@ class User:
 
 
 @dataclass
+class AuthRecord:
+    userId: str
+    dateTime: datetime
+
+@dataclass
 class VerificationCode:
     id: int
     userId: str

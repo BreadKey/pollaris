@@ -18,6 +18,13 @@ create table Roles(
     foreign key(userId) references Users(id) on delete cascade
 );
 
+create table AuthRecords(
+    userId varchar(20),
+    dateTime datetime,
+    primary key(userId),
+    foreign key(userId) references Users(id) on delete cascade
+);
+
 create table VerificationCodes(
     id bigint auto_increment primary key,
     userId varchar(20) not null,

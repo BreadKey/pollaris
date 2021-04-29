@@ -102,15 +102,31 @@ functions:
           path: signIn
           method: post
 
+  authorizeUser:
+    handler: handler.auth.authorizeUser
+
+  refreshAuth:
+    handler: handler.auth.refreshAuth
+    events:
+      - http:
+          path: auth
+          method: get
+          authorizer: authorizeUser
+
+  signOut:
+    handler: handler.auth.signOut
+    events:
+      - http:
+          path: auth
+          method: delete
+          authorizer: authorizeUser
+
   getAuthConstraints:
     handler: handler.auth.getConstraints
     events:
       - http:
           path: auth/constraints
           method: get
-
-  authorizeUser:
-    handler: handler.auth.authorizeUser
 
   requestVerificationCode:
     handler: handler.auth.requestVerificationCode

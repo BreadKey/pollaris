@@ -37,6 +37,20 @@ def signIn(event, context):
     return response.unauthorized()
 
 
+def refreshAuth(event, context):
+    userId = event["requestContext"]["authorizer"]["principalId"]
+
+    result = service.refreshAuth(userId)
+
+    return response.ok(result.__dict__)
+
+def signOut(event, context):
+    userId = event["requestContext"]["authorizer"]["principalId"]
+
+    service.signOut(userId)
+    
+    return response.ok()
+
 def getConstraints(event, context):
     return response.ok(CONSTRAINTS.__dict__)
 
@@ -143,7 +157,7 @@ def __getAuth(event: dict) -> Auth:
 
     assert method.lower() == "bearer"
 
-    return Auth(accessToken, event.get("refreshToken"))
+    return Auth(accessToken)
 
 
 def __generatePolicy(principalId, effect, resource):
@@ -165,7 +179,8 @@ def __generatePolicy(principalId, effect, resource):
 def __generateWithUserPolicy(principalId, effect):
     return __generatePolicy(principalId, effect, [
         METHOD_ARN + "/*/*/poll",
-        METHOD_ARN + "/*/*/auth/verification"
+        METHOD_ARN + "/*/*/auth",
+        METHOD_ARN + "/*/*/auth/verification",
     ])
 
 
