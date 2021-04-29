@@ -75,3 +75,10 @@ create table Answers(
     primary key(userId, pollId),
     foreign key (pollId) references Polls(id) on delete cascade
 );
+
+create table PollSubscriptions(
+    pollId bigint,
+    connectionId varchar(100),
+    primary key(pollId, connectionId),
+    foreign key (pollId) references Polls(id) on delete cascade
+);

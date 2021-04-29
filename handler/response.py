@@ -2,7 +2,10 @@ import json
 
 
 def ok(body: str = None): return __response(200, body)
-def ok(body: dict = None): return __response(200, json.dumps(body) if body else None)
+def ok(body: dict = None): return __response(
+    200, json.dumps(body) if body else None)
+
+
 def created(body: str = None): return __response(201, body)
 
 
@@ -19,6 +22,10 @@ def forbidden(message: str = None): return __response(
 
 def conflict(message: str = None): return __response(
     409, __buildMessage(message))
+
+
+def internalServerError(message: str = None): return __response(
+    500, __buildMessage(message))
 
 
 def __response(statusCode: int, body: str = None): return {

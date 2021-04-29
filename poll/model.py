@@ -34,3 +34,8 @@ class Answer:
     userId: str
     option: Option
     dateTime: datetime = None
+
+@dataclass
+class PollSubscription:
+    pollId: int
+    connectionId: str

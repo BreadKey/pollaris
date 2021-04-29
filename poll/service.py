@@ -8,7 +8,7 @@ from poll.model import *
 def createPoll(poll: Poll) -> Poll:
     assert len(poll.question) in range(
         1, CONSTRAINTS.maxQuestionLength), f"Question length not in range 1 ~ {CONSTRAINTS.maxQuestionLength}"
-    
+
     assert len(poll.options) in range(CONSTRAINTS.minOptionCount,
                                       CONSTRAINTS.maxOptionCount), f"Option count not in range {CONSTRAINTS.minOptionCount} ~ {CONSTRAINTS.maxOptionCount}"
 
@@ -32,3 +32,15 @@ def page(fromId: int, count: int, userId: str) -> List[Poll]:
     polls = repository.orderByDescFrom(fromId, count)
     repository.mergeHasUserAnswer(polls, userId)
     return polls
+
+
+def subscribe(pollId: int, connectionId: str):
+    repository.createSubscpriotn(PollSubscription(pollId, connectionId))
+
+
+def unsubscribe(connectionId: str):
+    repository.removeSubscriptionByConnectionId(connectionId)
+
+
+def findSubscriptionsById(pollId: int) -> List[PollSubscription]:
+    return repository.findSubscriptionsById(pollId)

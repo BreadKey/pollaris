@@ -1,3 +1,5 @@
+import os
+import boto3
 from poll import CONSTRAINTS, service, error
 from poll.model import *
 
@@ -38,13 +40,29 @@ def answer(event, context):
     userId = data["userId"]
 
     try:
-        service.answer(Answer(userId, Option(**option)))
+        answer = Answer(userId, Option(**option))
+        service.answer(answer)
+
+        subscriptions = service.findSubscriptionsById(answer.option.pollId)
+        if subscriptions:
+            __publishAnswer(subscriptions, answer)
+
         return response.ok()
     except error.AlreadyAnsweredError:
         return response.conflict("User already answered")
     except error.PollNotExistError:
         return response.badRequest("Poll not exist")
 
+def __publishAnswer(subscriptions: List[PollSubscription], answer: Answer):
+    endpointUrl = f"https://{os.environ.get('websocketId')}.execute-api.{os.environ.get('region')}.amazonaws.com/{os.environ.get('stage')}"
+    gatewayApi = boto3.client(
+        "apigatewaymanagementapi", endpoint_url=endpointUrl)
+    for subscription in subscriptions:
+        try:
+            gatewayApi.post_to_connection(
+                ConnectionId=subscription.connectionId, Data=json.dumps({"index": answer.option.index}).encode('utf-8'))
+        except:
+            service.unsubscribe(subscription.connectionId)
 
 def page(event, context):
     data = request.getData(event)
@@ -59,3 +77,18 @@ def page(event, context):
             [poll.toJson() for poll in service.page(fromId, count, userId)]
         )
     )
+
+
+@needData
+def webSocketConnectionManager(event, context):
+    connectionId = event["requestContext"]["connectionId"]
+    eventType = event["requestContext"]["eventType"]
+
+    if eventType == "CONNECT":
+        data = request.getData(event)
+        pollId = data["pollId"]
+        service.subscribe(pollId, connectionId)
+        return response.ok()
+    elif eventType == "DISCONNECT":
+        service.unsubscribe(connectionId)
+        return response.ok()

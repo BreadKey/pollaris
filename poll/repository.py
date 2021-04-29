@@ -80,3 +80,26 @@ def mergeHasUserAnswer(polls: List[Poll], userId: str):
             cursor.execute(querybuilder.select(
                 Answer, where=[Expression("pollId", poll.id), Expression("userId", userId)]))
             poll.hasUserAnswer = cursor.fetchone() is not None
+
+
+def createSubscpriotn(subscription: PollSubscription):
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.insert(
+            PollSubscription, subscription.__dict__))
+    POLLARIS_DB.commit()
+
+
+def removeSubscriptionByConnectionId(connectionId: str):
+    with POLLARIS_DB.cursor() as cursor:
+        cursor.execute(querybuilder.delete(PollSubscription, where=[
+            Expression("connectionId", connectionId)
+        ]))
+    POLLARIS_DB.commit()
+
+
+def findSubscriptionsById(pollId: int) -> List[PollSubscription]:
+    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute(querybuilder.select(PollSubscription,
+                                           where=[Expression("pollId", pollId)]))
+        subscriptions = [PollSubscription(**row) for row in cursor.fetchall()]
+        return subscriptions
