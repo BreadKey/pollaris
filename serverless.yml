@@ -105,12 +105,20 @@ functions:
   authorizeUser:
     handler: handler.auth.authorizeUser
 
+  getMe:
+    handler: handler.auth.getMe
+    events:
+      - http:
+          path: auth
+          method: get
+          authorizer: authorizeUser
+
   refreshAuth:
     handler: handler.auth.refreshAuth
     events:
       - http:
           path: auth
-          method: get
+          method: put
           authorizer: authorizeUser
 
   signOut:

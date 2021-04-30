@@ -37,19 +37,37 @@ def signIn(event, context):
     return response.unauthorized()
 
 
+def getMe(event, context):
+    """
+    authorizer: authorizeUser 
+    """
+    id = event["requestContext"]["authorizer"]["principalId"]
+
+    me = service.getMe(id)
+    return response.ok(me.toJson() if me else None)
+
+
 def refreshAuth(event, context):
+    """
+    authorizer: authorizeUser 
+    """
     userId = event["requestContext"]["authorizer"]["principalId"]
 
     result = service.refreshAuth(userId)
 
     return response.ok(result.__dict__)
 
+
 def signOut(event, context):
+    """
+    authorizer: authorizeUser 
+    """
     userId = event["requestContext"]["authorizer"]["principalId"]
 
     service.signOut(userId)
-    
+
     return response.ok()
+
 
 def getConstraints(event, context):
     return response.ok(CONSTRAINTS.__dict__)
@@ -68,6 +86,9 @@ def authorizeUser(event, context):
 @private
 @needData
 def requestVerificationCode(event, context):
+    """
+    authorizer: authorizeUser 
+    """
     data = request.getData(event)
 
     userId = data["userId"]
@@ -84,6 +105,9 @@ def requestVerificationCode(event, context):
 @private
 @needData
 def verifyIdentity(event, context):
+    """
+    authorizer: authorizeUser 
+    """
     data = request.getData(event)
 
     userId = data["userId"]
@@ -117,6 +141,9 @@ def authorizeVerifiedUser(event, context):
 @private
 @needData
 def registerIdentity(event, context):
+    """
+    authorizer: authorizeVerifiedUser 
+    """
     data = request.getData(event)
 
     userId = data["userId"]
@@ -130,6 +157,9 @@ def registerIdentity(event, context):
 
 @private
 def getNewIdentityChallenge(event, context):
+    """
+    authorizer: authorizeVerifiedUser 
+    """
     data = request.getData(event)
 
     userId = data["userId"]

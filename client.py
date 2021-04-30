@@ -55,9 +55,19 @@ def signIn():
     with open("local/data.json", 'w') as jsonFile:
         jsonFile.write(json.dumps(localData))
 
-def refreshAuth():
+
+def getMe():
     response = requests.get(HOST + "/auth", headers=__buildAuthHeader())
-    
+
+    response.encoding = 'utf8mb4'
+    assert response.status_code == 200, response.json()
+
+    print(response.json())
+
+
+def refreshAuth():
+    response = requests.put(HOST + "/auth", headers=__buildAuthHeader())
+
     assert response.status_code == 200, response.json()
     LAST_TOKENS["accessToken"] = response.json()["accessToken"]
     localData["accessToken"] = LAST_TOKENS["accessToken"]
@@ -65,10 +75,12 @@ def refreshAuth():
     with open("local/data.json", "w") as jsonFile:
         jsonFile.write(json.dumps(localData))
 
+
 def signOut():
     response = requests.delete(HOST + "/auth", headers=__buildAuthHeader())
 
     assert response.status_code == 200, response.json()
+
 
 def page():
     response = requests.get(

@@ -54,6 +54,8 @@ def signIn(id: str, password: str) -> Auth:
 
     return None
 
+def getMe(id: str) -> User:
+    return repository.findUserById(id)
 
 def refreshAuth(userId: str) -> Auth:
     return __publishAuth(userId)

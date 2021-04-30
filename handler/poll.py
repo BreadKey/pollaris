@@ -11,6 +11,9 @@ from handler import private, request, response, needData
 @private
 @needData
 def create(event, context):
+    """
+    authorizer: authorizeUser 
+    """
     data = request.getData(event)
 
     userId = data["userId"]
@@ -34,6 +37,9 @@ def getConstraints(event, context):
 @private
 @needData
 def answer(event, context):
+    """
+    authorizer: authorizeWithIdentity
+    """
     data = request.getData(event)
     option = data["option"]
     option["count"] = None
@@ -65,6 +71,9 @@ def __publishAnswer(subscriptions: List[PollSubscription], answer: Answer):
             service.unsubscribe(subscription.connectionId)
 
 def page(event, context):
+    """
+    authorizer: authorizeUser 
+    """
     data = request.getData(event)
 
     fromId = data.get("from", None)
