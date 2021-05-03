@@ -25,13 +25,13 @@ def create(event, context):
 
     try:
         createdPoll = service.createPoll(poll)
-        return response.created(json.dumps(createdPoll.toJson()))
+        return response.created(createdPoll.toJson())
     except AssertionError as e:
         return response.badRequest(e.__str__())
 
 
 def getConstraints(event, context):
-    return response.ok(json.dumps(CONSTRAINTS.__dict__))
+    return response.ok(CONSTRAINTS.__dict__)
 
 
 @private
@@ -59,6 +59,7 @@ def answer(event, context):
     except error.PollNotExistError:
         return response.badRequest("Poll not exist")
 
+
 def __publishAnswer(subscriptions: List[PollSubscription], answer: Answer):
     endpointUrl = f"https://{os.environ.get('websocketId')}.execute-api.{os.environ.get('region')}.amazonaws.com/{os.environ.get('stage')}"
     gatewayApi = boto3.client(
@@ -69,6 +70,7 @@ def __publishAnswer(subscriptions: List[PollSubscription], answer: Answer):
                 ConnectionId=subscription.connectionId, Data=json.dumps({"index": answer.option.index}).encode('utf-8'))
         except:
             service.unsubscribe(subscription.connectionId)
+
 
 def page(event, context):
     """
@@ -82,9 +84,7 @@ def page(event, context):
     userId = event["requestContext"]["authorizer"]["principalId"]
 
     return response.ok(
-        json.dumps(
-            [poll.toJson() for poll in service.page(fromId, count, userId)]
-        )
+        [poll.toJson() for poll in service.page(fromId, count, userId)]
     )
 
 
