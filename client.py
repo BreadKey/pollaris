@@ -136,7 +136,10 @@ def answer(userId: str, pollId: int, index: int):
         }
     }))
 
+    response.encoding = 'utf8mb4'
     assert response.status_code == 200, response.json()
+
+    print(response.json())
 
 
 def requestVerificationCode(userId: str, phoneNumber: str):

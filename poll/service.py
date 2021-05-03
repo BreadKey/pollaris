@@ -19,9 +19,12 @@ def createPoll(poll: Poll) -> Poll:
     return repository.createPoll(poll)
 
 
-def answer(answer: Answer):
+def answer(answer: Answer) -> Poll:
     try:
         repository.createAnswer(answer)
+        poll = repository.findPollById(answer.option.pollId)
+        poll.hasUserAnswer = True
+        return poll
     except IntegrityError as err:
         if err.args[0] == ER.NO_REFERENCED_ROW_2:
             raise error.PollNotExistError

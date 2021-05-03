@@ -1,9 +1,8 @@
-from poll.model import *
-
 from db import POLLARIS_DB, querybuilder
 from db.querybuilder import Expression
+from pymysql.cursors import Cursor, DictCursor
 
-import pymysql
+from poll.model import *
 
 
 def createPoll(poll: Poll) -> Poll:
@@ -28,6 +27,13 @@ def createPoll(poll: Poll) -> Poll:
     return Poll(poll.userId, poll.question, [Option(id, option.index, option.body, 0) for option in poll.options], id)
 
 
+def findPollById(id: int) -> Poll:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
+        cursor.execute(querybuilder.select(Poll, where=[Expression("id", id)]))
+        row = cursor.fetchone()
+
+        return __pollFromRow(row, cursor)
+
 def createAnswer(answer: Answer):
     with POLLARIS_DB.cursor() as cursor:
         data = {"userId": answer.userId,
@@ -49,7 +55,7 @@ def createAnswer(answer: Answer):
 
 
 def orderByDescFrom(id: int, count: int) -> List[Poll]:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(
             querybuilder.select(
                 Poll,
@@ -63,16 +69,21 @@ def orderByDescFrom(id: int, count: int) -> List[Poll]:
         polls = []
 
         for row in rows:
-            id = row["id"]
-            cursor.execute(querybuilder.select(
-                Option, where=[Expression("pollId", id)]))
-            row["options"] = [Option(**optionRow)
-                              for optionRow in cursor.fetchall()]
-
-            polls.append(Poll(**row))
+            polls.append(__pollFromRow(row, cursor))
 
     return polls
 
+def __pollFromRow(row, cursor: Cursor) -> Poll:
+    if row:
+        id = row["id"]
+        cursor.execute(querybuilder.select(
+            Option, where=[Expression("pollId", id)]))
+        row["options"] = [Option(**optionRow)
+                            for optionRow in cursor.fetchall()]
+
+        return Poll(**row)
+
+    return None
 
 def mergeHasUserAnswer(polls: List[Poll], userId: str):
     with POLLARIS_DB.cursor() as cursor:
@@ -98,7 +109,7 @@ def removeSubscriptionByConnectionId(connectionId: str):
 
 
 def findSubscriptionsById(pollId: int) -> List[PollSubscription]:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(querybuilder.select(PollSubscription,
                                            where=[Expression("pollId", pollId)]))
         subscriptions = [PollSubscription(**row) for row in cursor.fetchall()]

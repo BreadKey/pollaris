@@ -47,13 +47,13 @@ def answer(event, context):
 
     try:
         answer = Answer(userId, Option(**option))
-        service.answer(answer)
+        poll = service.answer(answer)
 
         subscriptions = service.findSubscriptionsById(answer.option.pollId)
         if subscriptions:
             __publishAnswer(subscriptions, answer)
 
-        return response.ok()
+        return response.ok(poll.toJson())
     except error.AlreadyAnsweredError:
         return response.conflict("User already answered")
     except error.PollNotExistError:
