@@ -38,6 +38,20 @@ class PollServiceTest(TestCase):
             service.answer(
                 Answer("breadkey", createdPoll.options[1], datetime.utcnow()))
 
+    @withTestUser
+    def testPage(self):
+        from poll import service
+        from poll.model import Poll, Answer, Option
+
+        poll = service.createPoll(Poll("breadkey", "hello", [Option(
+            None, 0, "world", None), Option(None, 1, "world", None)]))
+
+        service.answer(Answer("breadkey", poll.options[0]))
+
+        polls = service.page(None, 10, "breadkey")
+
+        self.assertEqual(polls[0].userAnswerAt, 0)
+
 
 if (__name__ == '__main__'):
     main()

@@ -9,7 +9,7 @@ def createPoll(poll: Poll) -> Poll:
     with POLLARIS_DB.cursor() as cursor:
         pollData = poll.__dict__.copy()
         pollData.pop("options")
-        pollData.pop("hasUserAnswer")
+        pollData.pop("userAnswerAt")
 
         cursor.execute(
             querybuilder.insert(Poll, pollData)
@@ -85,12 +85,13 @@ def __pollFromRow(row, cursor: Cursor) -> Poll:
 
     return None
 
-def mergeHasUserAnswer(polls: List[Poll], userId: str):
+def mergeUserAnswerIndex(polls: List[Poll], userId: str):
     with POLLARIS_DB.cursor() as cursor:
         for poll in polls:
             cursor.execute(querybuilder.select(
-                Answer, where=[Expression("pollId", poll.id), Expression("userId", userId)]))
-            poll.hasUserAnswer = cursor.fetchone() is not None
+                Answer, ["index"], where=[Expression("pollId", poll.id), Expression("userId", userId)]))
+            row = cursor.fetchone()
+            poll.userAnswerAt = row[0] if row else None
 
 
 def createSubscpriotn(subscription: PollSubscription):

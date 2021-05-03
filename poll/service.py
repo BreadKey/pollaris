@@ -23,7 +23,7 @@ def answer(answer: Answer) -> Poll:
     try:
         repository.createAnswer(answer)
         poll = repository.findPollById(answer.option.pollId)
-        poll.hasUserAnswer = True
+        poll.userAnswerAt = answer.option.index
         return poll
     except IntegrityError as err:
         if err.args[0] == ER.NO_REFERENCED_ROW_2:
@@ -33,7 +33,7 @@ def answer(answer: Answer) -> Poll:
 
 def page(fromId: int, count: int, userId: str) -> List[Poll]:
     polls = repository.orderByDescFrom(fromId, count)
-    repository.mergeHasUserAnswer(polls, userId)
+    repository.mergeUserAnswerIndex(polls, userId)
     return polls
 
 

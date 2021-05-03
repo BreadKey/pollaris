@@ -17,7 +17,7 @@ class Poll:
     question: str
     options: List[Option]
     id: int = None
-    hasUserAnswer: bool = False
+    userAnswerAt: int = None
 
     def toJson(self):
         return {
@@ -25,7 +25,7 @@ class Poll:
             "userId": self.userId,
             "question": self.question,
             "options": [option.__dict__ for option in self.options],
-            "hasUserAnswer": self.hasUserAnswer
+            "userAnswerAt": self.userAnswerAt
         }
 
 
