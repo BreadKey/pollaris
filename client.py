@@ -89,7 +89,7 @@ def page():
     response.encoding = 'utf8mb4'
     assert response.status_code == 200, response.json()
 
-    print(json.loads((response.json())))
+    print(response.json())
 
 
 def getNewIdentityChallenge(userId: str) -> str:
