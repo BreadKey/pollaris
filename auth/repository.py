@@ -120,7 +120,7 @@ def createVerificationCode(userId: str, phoneNumber: str, code: str):
 
         cursor.execute(
             querybuilder.insert(VerificationCode, verificationCode.__dict__, encrypt={
-                                "phoneNumber": __ENCRYPT_METHOD, "code": __ENCRYPT_METHOD})
+                                "phoneNumber": __ENCRYPT_METHOD, "code": __ENCRYPT_METHOD}, onDuplicate=Expression("code", code))
         )
     POLLARIS_DB.commit()
 

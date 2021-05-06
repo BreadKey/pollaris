@@ -90,8 +90,6 @@ def requestVerificationCode(userId: str, phoneNumber: str):
 
     assert not __isVerifiedUser(
         user, cryptedPhoneNumber), "Already verified user"
-    assert not repository.hasVerificationCode(
-        cryptedPhoneNumber), "Already requested"
 
     code = __generateVerificationCode()
     cryptedCode = crypt(code, __SALT)
