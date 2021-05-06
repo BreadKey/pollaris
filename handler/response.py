@@ -1,11 +1,12 @@
 import json
 
 
-def ok(body = None): return __response(
+def ok(body=None): return __response(
     200, json.dumps(body) if body else None)
 
 
-def created(body: str = None): return __response(201, body)
+def created(body=None): return __response(
+    201, json.dumps(body) if body else None)
 
 
 def badRequest(message: str = None): return __response(
