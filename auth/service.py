@@ -96,6 +96,7 @@ def requestVerificationCode(userId: str, phoneNumber: str):
 
     __sendVerificationCode(phoneNumber, code)
     repository.setVerified(userId, False)
+    repository.removeVerifiactionCode(userId)
     repository.createVerificationCode(userId, cryptedPhoneNumber, cryptedCode)
     repository.removeVerifiactionCode(userId,
                                       timedelta(minutes=CONSTRAINTS.responseWatingMinutes))
