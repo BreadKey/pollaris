@@ -159,18 +159,16 @@ def verifyIdentity(userId: str, code: str):
 
 
 def registerIdentity(userId: str):
-    decryptKey = RSA.generate(1024)
-    encryptKey = decryptKey.publickey()
-
     response = requests.post(HOST + "/auth/identity", headers=__buildAuthHeader(), data=json.dumps({
         "userId": userId,
-        "method": "Fingerprint",
-        "key": decryptKey.exportKey().decode(UTF8)
+        "method": "Fingerprint"
     }))
 
     assert response.status_code == 201, response.json()
 
-    localData["identityKey"] = encryptKey.exportKey().decode(UTF8)
+    encryptKey = response.json()["encryptKey"]
+
+    localData["identityKey"] = encryptKey
     with open("local/data.json", 'w') as jsonFile:
         jsonFile.write(json.dumps(localData))
 

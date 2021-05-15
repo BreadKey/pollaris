@@ -16,7 +16,7 @@ from auth import CONSTRAINTS, Auth, error, repository
 from auth.model import *
 
 __SALT = os.environ.get("salt", "some salt")
-__STAGE = os.environ.get("stage", "dev")
+__STAGE = os.environ.get("stage", "local")
 __JWT_KEY = os.environ.get("jwtKey", "jwt key")
 __JWT_ALGORITHM = os.environ.get("jwtAlgorithm", "HS256")
 
@@ -54,8 +54,10 @@ def signIn(id: str, password: str) -> Auth:
 
     return None
 
+
 def getMe(id: str) -> User:
     return repository.findUserById(id)
+
 
 def refreshAuth(userId: str) -> Auth:
     return __publishAuth(userId)
@@ -74,8 +76,10 @@ def __publishAuth(userId: str) -> Auth:
 
     return Auth(accessToken)
 
+
 def signOut(userId: str):
     repository.removeAuthRecordByUserId(userId)
+
 
 def requestVerificationCode(userId: str, phoneNumber: str):
     phoneNumber = re.sub(r"-| ", '', phoneNumber)
@@ -191,7 +195,8 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> 
         lastRecord = repository.findAuthRecordByUserId(userId)
 
         if lastRecord:
-            exp = datetime.fromtimestamp(payload["exp"])
+            exp = datetime.utcfromtimestamp(payload["exp"])
+            
             if exp - timedelta(days=CONSTRAINTS.accessTokenExpireDays) != lastRecord.dateTime:
                 raise error.ExpiredAuthError
         else:
@@ -205,8 +210,15 @@ def authorize(auth: Auth, role: Role = None, needVerification: bool = False) -> 
         raise error.ExpiredAuthError
 
 
-def registerIdentity(identity: Identity):
+def registerIdentity(userId: str, method: IdentifyMethod) -> str:
+    decryptKey = RSA.generate(1024)
+    encryptKey = decryptKey.publickey()
+
+    identity = Identity(userId, method, decryptKey.exportKey().decode('utf-8'))
+
     repository.saveIdentity(identity)
+
+    return encryptKey.exportKey().decode('utf-8')
 
 
 def getNewIdentityChallenge(userId: str) -> str:

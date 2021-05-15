@@ -148,11 +148,10 @@ def registerIdentity(event, context):
 
     userId = data["userId"]
     method = IdentifyMethod(data["method"])
-    key = data["key"]
 
-    service.registerIdentity(Identity(userId, method, key))
+    encryptKey = service.registerIdentity(userId, method)
 
-    return response.created()
+    return response.created({"encryptKey": encryptKey})
 
 
 @private

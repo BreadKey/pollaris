@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import List, Type
 
 import pymysql
+from pymysql.cursors import DictCursor
 from db import POLLARIS_DB, querybuilder
 from db.querybuilder import Expression
 
@@ -33,7 +34,7 @@ def createUser(user: User, password: str):
 
 
 def findUserById(id: str) -> User:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(querybuilder.select(
             User, fields=__USER_FIELDS, where=[Expression("id", id)]))
 
@@ -41,7 +42,7 @@ def findUserById(id: str) -> User:
 
 
 def findUserByIdAndPassword(id: str, password: str) -> User:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(
             querybuilder.select(User, fields=__USER_FIELDS,
                                 where=[
@@ -74,7 +75,7 @@ def saveAuthRecord(record: AuthRecord):
 
 
 def findAuthRecordByUserId(userId: str) -> AuthRecord:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(querybuilder.select(
             AuthRecord, where=[Expression("userId", userId)]))
 
@@ -183,7 +184,7 @@ def createVerificationLog(userId: str):
 
 
 def findLastVerificationLogByPhoneNumber(phoneNumber: str, encrypt: bool = True) -> VerificationLog:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(
             querybuilder.select(VerificationLog,
                                 where=[Expression("phoneNumber", phoneNumber)],
@@ -199,7 +200,7 @@ def findLastVerificationLogByPhoneNumber(phoneNumber: str, encrypt: bool = True)
 
 
 def findVerificationCodeByUserIdAndCode(userId: str, code: str) -> VerificationCode:
-    with POLLARIS_DB.cursor(pymysql.cursors.DictCursor) as cursor:
+    with POLLARIS_DB.cursor(DictCursor) as cursor:
         cursor.execute(
             querybuilder.select(VerificationCode,
                                 where=[Expression("userId", userId),

@@ -1,16 +1,11 @@
-from auth.error import NotGrantedError
 import base64
 import json
-from datetime import datetime, timedelta
 from test import db
 from test.utils import Capturing, withTestUser
 from unittest import TestCase, main
-from Crypto.PublicKey import RSA
+
 from Crypto.Cipher import PKCS1_OAEP
-import base64
-
-import jwt
-
+from Crypto.PublicKey import RSA
 
 class AuthServiceTest(TestCase):
     def setUp(self) -> None:
@@ -21,8 +16,9 @@ class AuthServiceTest(TestCase):
 
     def testVerify(self):
         from auth import service
-        from auth.model import User, Role
         from auth.error import NotVerifiedError
+        from auth.model import Role, User
+        from auth.error import NotGrantedError
 
         user = User("testUser", "testUser", False, [Role.User])
 
@@ -92,14 +88,10 @@ class AuthServiceTest(TestCase):
 
     def __generateAndRegisterNewKeyPair(self):
         from auth import service
-        from auth.model import Identity, IdentifyMethod
-        decryptKey = RSA.generate(1024)
-        encryptKey = decryptKey.publickey()
+        from auth.model import IdentifyMethod
+        encryptKey = service.registerIdentity("breadkey", IdentifyMethod.Fingerprint)
 
-        service.registerIdentity(
-            Identity("breadkey", IdentifyMethod.Fingerprint, decryptKey.exportKey().decode('utf-8')))
-
-        return encryptKey
+        return RSA.importKey(encryptKey.encode('utf-8'))
 
     def __encryptChallenge(self, key, challenge):
         cipher = PKCS1_OAEP.new(key)
